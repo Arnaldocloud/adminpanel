@@ -57,7 +57,7 @@ export function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-400 via-gray-500 to-zinc-300">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-400 via-gray-500 to-zinc-300">
       <header
         className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${
           scrollPosition > 50 ? "bg-gray-600 shadow-lg" : "bg-transparent"
