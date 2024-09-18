@@ -20,10 +20,10 @@ import {
   Twitch,
   Facebook,
 } from "lucide-react";
+import { link } from "fs";
 
 const getIconForLink = (url: string) => {
   if (url.includes("instagram")) return Instagram;
-  if (url.includes("twitter")) return X;
   if (url.includes("youtube")) return Youtube;
   if (url.includes("linkedin")) return Linkedin;
   if (url.includes("github")) return Github;
@@ -44,8 +44,8 @@ export function HomePage() {
       name: "LinkedIn",
     },
     { url: "https://github.com/Arnaldocloud", name: "GitHub" },
-    { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
     { url: "https://www.facebook.com/codificatufuturo", name: "Facebook" },
+    { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
   ];
 
   useEffect(() => {
@@ -57,18 +57,14 @@ export function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-400 via-gray-500 to-zinc-300">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
       <header
-        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${
-          scrollPosition > 50 ? "bg-gray-600 shadow-lg" : "bg-transparent"
-        }`}
+        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"}`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
-          <span className="sr-only">Tu Nombre</span>
+          <span className="sr-only">Codificatufuturo</span>
           <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
-          <span className="ml-2 text-2xl font-bold text-white">
-            Codificatufuturo
-          </span>
+          <span className="ml-2 text-2xl font-bold text-white">Codificatufuturo</span>
         </Link>
         <button
           className="ml-auto lg:hidden text-white"
@@ -81,9 +77,7 @@ export function HomePage() {
           )}
         </button>
         <nav
-          className={`${
-            isMenuOpen ? "flex" : "hidden"
-          } lg:flex absolute lg:relative top-16 lg:top-0 left-0 w-full lg:w-auto flex-col lg:flex-row lg:ml-auto gap-4 sm:gap-6 bg-gray-600 lg:bg-transparent p-4 lg:p-0`}
+          className={`${isMenuOpen ? "flex" : "hidden"} lg:flex absolute lg:relative top-16 lg:top-0 left-0 w-full lg:w-auto flex-col lg:flex-row lg:ml-auto gap-4 sm:gap-6 bg-purple-600 lg:bg-transparent p-4 lg:p-0`}
         >
           {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
             (item) => (
@@ -124,7 +118,7 @@ export function HomePage() {
                     type="email"
                   />
                   <Button
-                    className="bg-white text-gray-600 hover:bg-gray-600 hover:text-white transition-all duration-300"
+                    className="bg-white text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300"
                     type="submit"
                   >
                     Suscribirse
@@ -179,7 +173,7 @@ export function HomePage() {
                       rel="noopener noreferrer"
                     >
                       <Badge
-                        className="mt-4 bg-gray-600 text-white group-hover:bg-white group-hover:text-gray-600 transition-colors duration-300 cursor-pointer"
+                        className="mt-4 bg-purple-600 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors duration-300 cursor-pointer"
                         variant="secondary"
                       >
                         {article.badge}
@@ -205,19 +199,19 @@ export function HomePage() {
                   title: "Video Trending",
                   desc: "Mira mi video más popular de esta semana.",
                   badge: "YouTube",
-                  link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8",
+                  link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8s",
                 },
                 {
                   title: "Tutorial Paso a Paso",
                   desc: "Aprende una nueva habilidad con este tutorial detallado.",
                   badge: "Educativo",
-                  link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=6s",
+                  link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=8s",
                 },
                 {
                   title: "Entrevista Exclusiva",
                   desc: "Una conversación fascinante con un experto en el campo.",
                   badge: "Exclusivo",
-                  link: "https://www.youtube.com/watch?v=PR7ysC-6-00",
+                  link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=17s",
                 },
               ].map((video, index) => (
                 <Card
@@ -284,18 +278,20 @@ export function HomePage() {
                       Jesús Romero
                     </h3>
                     <p className="text-white/80 mb-4">
-                      Soy un creador de contenido apasionado por la tecnologiá.
-                      Con años de experiencia en la reparación y mantenimiento
-                      de computadoras, la configuración de redes inalámbricas y
-                      el desarrollo web. , me dedico a compartir conocimientos y
-                      experiencias que puedan inspirar y ayudar a otros a
-                      alcanzar sus metas.
+                      Soy un apasionado creador de contenido con una profunda
+                      conexión con la tecnología. A lo largo de los años, he
+                      acumulado experiencia en la reparación y mantenimiento de
+                      computadoras, la configuración de redes inalámbricas y el
+                      desarrollo web. Mi objetivo principal es compartir
+                      conocimientos y experiencias que inspiren y ayuden a otros
+                      a alcanzar sus metas.
                     </p>
                     <p className="text-white/80">
-                      A través de mis artículos, videos y tutoriales, busco
-                      proporcionar contenido valioso y práctico que pueda marcar
-                      la diferencia en la vida de mis seguidores. ¡Únete a mí en
-                      este viaje de aprendizaje y crecimiento continuo!
+                      A través de artículos, videos y tutoriales, busco
+                      proporcionar contenido valioso y práctico que marque la
+                      diferencia en la vida de mis seguidores. ¡Te invito a
+                      unirte a mí en este emocionante viaje de aprendizaje y
+                      crecimiento continuo!
                     </p>
                   </div>
                 </div>
