@@ -20,7 +20,6 @@ import {
   Twitch,
   Facebook,
 } from "lucide-react";
-import { link } from "fs";
 
 const getIconForLink = (url: string) => {
   if (url.includes("instagram")) return Instagram;
@@ -64,7 +63,9 @@ export function HomePage() {
         <Link className="flex items-center justify-center" href="#inicio">
           <span className="sr-only">Codificatufuturo</span>
           <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
-          <span className="ml-2 text-2xl font-bold text-white">Codificatufuturo</span>
+          <span className="ml-2 text-2xl font-bold text-white">
+            Codificatufuturo
+          </span>
         </Link>
         <button
           className="ml-auto lg:hidden text-white"
@@ -199,19 +200,19 @@ export function HomePage() {
                   title: "Video Trending",
                   desc: "Mira mi video más popular de esta semana.",
                   badge: "YouTube",
-                  link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8s",
+                  link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8&t=3s",
                 },
                 {
                   title: "Tutorial Paso a Paso",
                   desc: "Aprende una nueva habilidad con este tutorial detallado.",
                   badge: "Educativo",
-                  link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=8s",
+                  link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=9s",
                 },
                 {
                   title: "Entrevista Exclusiva",
                   desc: "Una conversación fascinante con un experto en el campo.",
                   badge: "Exclusivo",
-                  link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=17s",
+                  link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=19s",
                 },
               ].map((video, index) => (
                 <Card
@@ -344,7 +345,7 @@ export function HomePage() {
             className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300"
             href="#"
           >
-            
+            Privacidad
           </Link>
         </nav>
       </footer>
