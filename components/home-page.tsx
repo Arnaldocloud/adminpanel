@@ -344,7 +344,7 @@ export function HomePage() {
             className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300"
             href="#"
           >
-            Privacidad
+            
           </Link>
         </nav>
       </footer>
