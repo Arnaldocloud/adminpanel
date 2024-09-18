@@ -270,9 +270,9 @@ export function HomePage() {
                       <Image
                         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
                         alt="Tu Nombre"
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                         width={300}
                         height={300}
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
                   </div>
