@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -265,12 +267,12 @@ export function HomePage() {
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="w-full md:w-1/3">
                     <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group">
-                      <img
+                      <Image
                         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
                         alt="Tu Nombre"
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                         width={300}
                         height={300}
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
                   </div>
