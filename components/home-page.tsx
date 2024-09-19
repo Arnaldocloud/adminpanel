@@ -321,21 +321,9 @@ export function HomePage() {
                         Jesús Romero
                       </h3>
                       <p className="text-white/80 mb-4">
-                      Soy un apasionado creador de contenido con una profunda
-                      conexión con la tecnología. A lo largo de los años, he
-                      acumulado experiencia en la reparación y mantenimiento de
-                      computadoras, la configuración de redes inalámbricas y el
-                      desarrollo web. Mi objetivo principal es compartir
-                      conocimientos y experiencias que inspiren y ayuden a otros
-                      a alcanzar sus metas.
-                    </p>
-                    <p className="text-white/80">
-                      A través de artículos, videos y tutoriales, busco
-                      proporcionar contenido valioso y práctico que marque la
-                      diferencia en la vida de mis seguidores. ¡Te invito a
-                      unirte a mí en este emocionante viaje de aprendizaje y
-                      crecimiento continuo!
-                    </p>
+                        Soy un apasionado creador de contenido con una profunda
+                        conexión con la tecnología...
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -360,7 +348,7 @@ export function HomePage() {
                 { url: "https://linkedin.com", name: "LinkedIn" },
                 { url: "https://github.com", name: "GitHub" },
                 { url: "https://facebook.com", name: "Facebook" },
-                { url: "https://twitch.tv", name: "Twitch" },
+                { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
               ].map((link, index) => {
                 const Icon = getIconForLink(link.url);
                 return (
