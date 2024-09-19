@@ -372,7 +372,7 @@ export function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
                 {
-                  url: "https://www.instagram.com/kamscomputers/",
+                  url: "https://www.instagram.com/codificatufuturo/",
                   name: "Instagram",
                 },
                 {
