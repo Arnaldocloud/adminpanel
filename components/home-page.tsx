@@ -126,16 +126,14 @@ export function HomePage() {
         style={{ width: `${scrollPosition}%` }}
       />
 
-      <header
-        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${
+<header
+        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-20 transition-all duration-300 ${
           scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"
         }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
           <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
-          <span className="ml-2 text-2xl font-bold text-white">
-            Codificatufuturo
-          </span>
+          <span className="ml-2 text-2xl font-bold text-white">Codificatufuturo</span>
         </Link>
         <button
           className="ml-auto lg:hidden text-white"
@@ -143,24 +141,37 @@ export function HomePage() {
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
+
+        {/* Menú hamburguesa en móvil */}
         <nav
           className={`${
             isMenuOpen ? "flex" : "hidden"
-          } lg:flex absolute lg:relative top-16 lg:top-0 left-0 w-full lg:w-auto flex-col lg:flex-row lg:ml-auto gap-4 sm:gap-6 bg-purple-600 lg:bg-transparent p-4 lg:p-0`}
+          } fixed top-0 left-0 w-full h-full bg-purple-700 bg-opacity-95 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
-            (item) => (
-              <Link
-                key={item}
-                className="text-sm font-medium text-white relative group"
-                href={`#${item}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.charAt(0).toUpperCase() + item.slice(1)}
-                <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
-              </Link>
-            )
-          )}
+          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map((item) => (
+            <Link
+              key={item}
+              className="text-2xl font-bold text-white py-4"
+              href={`#${item}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {item.charAt(0).toUpperCase() + item.slice(1)}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Menú de navegación en desktop */}
+        <nav className="hidden lg:flex gap-6 ml-auto">
+          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map((item) => (
+            <Link
+              key={item}
+              className="text-sm font-medium text-white relative group"
+              href={`#${item}`}
+            >
+              {item.charAt(0).toUpperCase() + item.slice(1)}
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+            </Link>
+          ))}
         </nav>
       </header>
 
@@ -321,9 +332,21 @@ export function HomePage() {
                         Jesús Romero
                       </h3>
                       <p className="text-white/80 mb-4">
-                        Soy un apasionado creador de contenido con una profunda
-                        conexión con la tecnología...
-                      </p>
+                      Soy un apasionado creador de contenido con una profunda
+                      conexión con la tecnología. A lo largo de los años, he
+                      acumulado experiencia en la reparación y mantenimiento de
+                      computadoras, la configuración de redes inalámbricas y el
+                      desarrollo web. Mi objetivo principal es compartir
+                      conocimientos y experiencias que inspiren y ayuden a otros
+                      a alcanzar sus metas.
+                    </p>
+                    <p className="text-white/80">
+                      A través de artículos, videos y tutoriales, busco
+                      proporcionar contenido valioso y práctico que marque la
+                      diferencia en la vida de mis seguidores. ¡Te invito a
+                      unirte a mí en este emocionante viaje de aprendizaje y
+                      crecimiento continuo!
+                    </p>
                     </div>
                   </div>
                 </CardContent>
@@ -343,11 +366,11 @@ export function HomePage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
-                { url: "https://instagram.com", name: "Instagram" },
-                { url: "https://youtube.com", name: "YouTube" },
-                { url: "https://linkedin.com", name: "LinkedIn" },
-                { url: "https://github.com", name: "GitHub" },
-                { url: "https://facebook.com", name: "Facebook" },
+                { url: "https://www.instagram.com/kamscomputers/", name: "Instagram" },
+                { url: "https://www.youtube.com/@codificatufuturo", name: "YouTube" },
+                { url: "https://www.linkedin.com/in/jesús-romero-7202b1264/", name: "LinkedIn" },
+                { url: "https://github.com/Arnaldocloud", name: "GitHub" },
+                { url: "https://www.facebook.com/codificatufuturo/", name: "Facebook" },
                 { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
               ].map((link, index) => {
                 const Icon = getIconForLink(link.url);
