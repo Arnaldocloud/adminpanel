@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-
 import Link from "next/link";
+import { motion } from "framer-motion"; // Importamos Framer Motion
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +23,7 @@ import {
   Facebook,
 } from "lucide-react";
 
+// Función para seleccionar el icono correcto según el enlace
 const getIconForLink = (url: string) => {
   if (url.includes("instagram")) return Instagram;
   if (url.includes("youtube")) return Youtube;
@@ -36,34 +37,101 @@ const getIconForLink = (url: string) => {
 export function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
-  const links = [
-    { url: "https://www.instagram.com/kamscomputers/", name: "Instagram" },
-    { url: "https://www.youtube.com/@codificatufuturo", name: "YouTube" },
-    {
-      url: "https://www.linkedin.com/in/jesús-romero-7202b1264/",
-      name: "LinkedIn",
-    },
-    { url: "https://github.com/Arnaldocloud", name: "GitHub" },
-    { url: "https://www.facebook.com/codificatufuturo", name: "Facebook" },
-    { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
-  ];
+  // Cursor personalizado que sigue el ratón
+  useEffect(() => {
+    const updateCursorPosition = (e: MouseEvent) => {
+      setCursorPosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", updateCursorPosition);
+    return () => window.removeEventListener("mousemove", updateCursorPosition);
+  }, []);
+
+  // Barra de progreso de scroll
+  const handleScroll = () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    setScrollPosition(progress);
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollPosition(window.scrollY);
-    };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Variantes para animaciones de las tarjetas
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+  };
+
+  // Lista de artículos (ejemplo)
+  const articles = [
+    {
+      title: "Último Artículo",
+      desc: "Descubre mis pensamientos más recientes en este artículo PDF.",
+      badge: "PDF",
+      pdf: "https://drive.google.com/file/d/1JmykoaRHugSjt-NHZtMZHKQB8DNoMsFH/view?usp=drive_link",
+    },
+    {
+      title: "Guía Completa",
+      desc: "Una guía detallada sobre un tema de gran interés.",
+      badge: "Nuevo",
+      pdf: "https://drive.google.com/file/d/1k3r6k51RVOyxlv458jPuLxnouvZDqiSn/view?usp=drive_link",
+    },
+    {
+      title: "Análisis en Profundidad",
+      desc: "Un análisis detallado de las últimas tendencias.",
+      badge: "Popular",
+      pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    },
+  ];
+
+  // Lista de videos (ejemplo)
+  const videos = [
+    {
+      title: "Video Trending",
+      desc: "Mira mi video más popular de esta semana.",
+      badge: "YouTube",
+      link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8&t=3s",
+    },
+    {
+      title: "Tutorial Paso a Paso",
+      desc: "Aprende una nueva habilidad con este tutorial detallado.",
+      badge: "Educativo",
+      link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=9s",
+    },
+    {
+      title: "Entrevista Exclusiva",
+      desc: "Una conversación fascinante con un experto en el campo.",
+      badge: "Exclusivo",
+      link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=19s",
+    },
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
+    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
+      {/* Cursor personalizado */}
+      <motion.div
+        className="fixed top-0 left-0 w-10 h-10 bg-white/50 rounded-full pointer-events-none z-50"
+        animate={{ x: cursorPosition.x - 20, y: cursorPosition.y - 20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      />
+
+      {/* Barra de progreso del scroll */}
+      <motion.div
+        className="fixed top-0 left-0 h-2 bg-purple-600 z-50"
+        style={{ width: `${scrollPosition}%` }}
+      />
+
       <header
-        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"}`}
+        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-10 transition-all duration-300 ${
+          scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"
+        }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
-          <span className="sr-only">Codificatufuturo</span>
           <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
           <span className="ml-2 text-2xl font-bold text-white">
             Codificatufuturo
@@ -73,14 +141,12 @@ export function HomePage() {
           className="ml-auto lg:hidden text-white"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          {isMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
         <nav
-          className={`${isMenuOpen ? "flex" : "hidden"} lg:flex absolute lg:relative top-16 lg:top-0 left-0 w-full lg:w-auto flex-col lg:flex-row lg:ml-auto gap-4 sm:gap-6 bg-purple-600 lg:bg-transparent p-4 lg:p-0`}
+          className={`${
+            isMenuOpen ? "flex" : "hidden"
+          } lg:flex absolute lg:relative top-16 lg:top-0 left-0 w-full lg:w-auto flex-col lg:flex-row lg:ml-auto gap-4 sm:gap-6 bg-purple-600 lg:bg-transparent p-4 lg:p-0`}
         >
           {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
             (item) => (
@@ -97,14 +163,26 @@ export function HomePage() {
           )}
         </nav>
       </header>
+
       <main className="flex-1 pt-16">
         <section
           id="inicio"
-          className="w-full py-12 md:py-24 lg:py-32 xl:py-48"
+          className="w-full py-12 md:py-24 lg:py-32 xl:py-48 relative"
         >
-          <div className="container px-4 md:px-6">
+          {/* Efecto Parallax */}
+          <motion.div
+            className="absolute inset-0 bg-fixed"
+            style={{ backgroundImage: "url('/path/to/your/image.jpg')" }}
+            animate={{ backgroundPositionY: scrollPosition * 0.5 }}
+            transition={{ ease: "easeOut", duration: 0.5 }}
+          ></motion.div>
+          <div className="container relative z-10 px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+              >
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white">
                   Bienvenidos a mi mundo creativo
                 </h1>
@@ -112,7 +190,7 @@ export function HomePage() {
                   Explora mis artículos, videos y más. Mantente actualizado con
                   todo mi contenido.
                 </p>
-              </div>
+              </motion.div>
               <div className="w-full max-w-sm space-y-2">
                 <form className="flex space-x-2">
                   <Input
@@ -131,6 +209,8 @@ export function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Artículos destacados con animación */}
         <section
           id="articulos"
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
@@ -140,54 +220,35 @@ export function HomePage() {
               Artículos Destacados
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Último Artículo",
-                  desc: "Descubre mis pensamientos más recientes en este artículo PDF.",
-                  badge: "PDF",
-                  pdf: "https://drive.google.com/file/d/1JmykoaRHugSjt-NHZtMZHKQB8DNoMsFH/view?usp=drive_link",
-                },
-                {
-                  title: "Guía Completa",
-                  desc: "Una guía detallada sobre un tema de gran interés.",
-                  badge: "Nuevo",
-                  pdf: "https://drive.google.com/file/d/1k3r6k51RVOyxlv458jPuLxnouvZDqiSn/view?usp=drive_link",
-                },
-                {
-                  title: "Análisis en Profundidad",
-                  desc: "Un análisis detallado de las últimas tendencias.",
-                  badge: "Popular",
-                  pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                },
-              ].map((article, index) => (
-                <Card
+              {articles.map((article, index) => (
+                <motion.div
                   key={index}
-                  className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2"
+                  variants={cardVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
                 >
-                  <CardContent className="p-6">
-                    <FileText className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-                    <h3 className="text-2xl font-bold text-white mb-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-white/80 mb-4">{article.desc}</p>
-                    <Link
-                      href={article.pdf}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Badge
-                        className="mt-4 bg-purple-600 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors duration-300 cursor-pointer"
-                        variant="secondary"
-                      >
-                        {article.badge}
-                      </Badge>
-                    </Link>
-                  </CardContent>
-                </Card>
+                  <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
+                    <CardContent className="p-6">
+                      <FileText className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
+                      <h3 className="text-2xl font-bold text-white mb-2">
+                        {article.title}
+                      </h3>
+                      <p className="text-white/80 mb-4">{article.desc}</p>
+                      <Link href={article.pdf} target="_blank" rel="noopener noreferrer">
+                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
+                          {article.badge}
+                        </Badge>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
+
+        {/* Videos populares con animación */}
         <section
           id="videos"
           className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
@@ -197,90 +258,69 @@ export function HomePage() {
               Videos Populares
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Video Trending",
-                  desc: "Mira mi video más popular de esta semana.",
-                  badge: "YouTube",
-                  link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8&t=3s",
-                },
-                {
-                  title: "Tutorial Paso a Paso",
-                  desc: "Aprende una nueva habilidad con este tutorial detallado.",
-                  badge: "Educativo",
-                  link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=9s",
-                },
-                {
-                  title: "Entrevista Exclusiva",
-                  desc: "Una conversación fascinante con un experto en el campo.",
-                  badge: "Exclusivo",
-                  link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=19s",
-                },
-              ].map((video, index) => (
-                <Card
+              {videos.map((video, index) => (
+                <motion.div
                   key={index}
-                  className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <CardContent className="p-6">
-                    <Video className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-                    <h3 className="text-2xl font-bold text-white mb-2">
-                      {video.title}
-                    </h3>
-                    <p className="text-white/80">{video.desc}</p>
-                    {video.link ? (
-                      <Link
-                        href={video.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Badge
-                          className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300 cursor-pointer"
-                          variant="secondary"
-                        >
+                  <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
+                    <CardContent className="p-6">
+                      <Video className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
+                      <h3 className="text-2xl font-bold text-white mb-2">
+                        {video.title}
+                      </h3>
+                      <p className="text-white/80">{video.desc}</p>
+                      {video.link ? (
+                        <Link href={video.link} target="_blank" rel="noopener noreferrer">
+                          <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300 cursor-pointer">
+                            {video.badge}
+                          </Badge>
+                        </Link>
+                      ) : (
+                        <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300">
                           {video.badge}
                         </Badge>
-                      </Link>
-                    ) : (
-                      <Badge
-                        className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300"
-                        variant="secondary"
-                      >
-                        {video.badge}
-                      </Badge>
-                    )}
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
-        <section
-          id="sobre-mi"
-          className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
-        >
+
+        {/* Sección "Sobre Mí" con efecto morphing */}
+        <section id="sobre-mi" className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
               Sobre Mí
             </h2>
-            <Card className="bg-white/20 backdrop-blur-lg border-0 hover:bg-white/30 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <div className="w-full md:w-1/3">
-                    <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group">
-                      <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
-                        alt="Tu Nombre"
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-                        width={300}
-                        height={300}
-                      />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white/20 backdrop-blur-lg border-0 hover:bg-white/30 transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-full md:w-1/3">
+                      <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group">
+                        <Image
+                          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
+                          alt="Tu Nombre"
+                          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
+                          width={300}
+                          height={300}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-full md:w-2/3">
-                    <h3 className="text-2xl font-bold text-white mb-4">
-                      Jesús Romero
-                    </h3>
-                    <p className="text-white/80 mb-4">
+                    <div className="w-full md:w-2/3">
+                      <h3 className="text-2xl font-bold text-white mb-4">
+                        Jesús Romero
+                      </h3>
+                      <p className="text-white/80 mb-4">
                       Soy un apasionado creador de contenido con una profunda
                       conexión con la tecnología. A lo largo de los años, he
                       acumulado experiencia en la reparación y mantenimiento de
@@ -296,12 +336,15 @@ export function HomePage() {
                       unirte a mí en este emocionante viaje de aprendizaje y
                       crecimiento continuo!
                     </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </section>
+
+        {/* Enlaces sociales con animación interactiva */}
         <section
           id="enlaces"
           className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
@@ -311,21 +354,33 @@ export function HomePage() {
               Mis Enlaces
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {links.map((link, index) => {
+              {[
+                { url: "https://instagram.com", name: "Instagram" },
+                { url: "https://youtube.com", name: "YouTube" },
+                { url: "https://linkedin.com", name: "LinkedIn" },
+                { url: "https://github.com", name: "GitHub" },
+                { url: "https://facebook.com", name: "Facebook" },
+                { url: "https://twitch.tv", name: "Twitch" },
+              ].map((link, index) => {
                 const Icon = getIconForLink(link.url);
                 return (
-                  <Link
+                  <motion.div
                     key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-lg rounded-lg hover:bg-white/30 transition-all duration-300 group"
+                    whileHover={{ scale: 1.2, rotate: 15 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    <Icon className="h-8 w-8 text-white mb-2 group-hover:scale-110 transition-transform duration-300" />
-                    <span className="text-sm font-medium text-white text-center">
-                      {link.name}
-                    </span>
-                  </Link>
+                    <Link
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-lg rounded-lg hover:bg-white/30 transition-all duration-300 group"
+                    >
+                      <Icon className="h-8 w-8 text-white mb-2 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="text-sm font-medium text-white text-center">
+                        {link.name}
+                      </span>
+                    </Link>
+                  </motion.div>
                 );
               })}
             </div>
