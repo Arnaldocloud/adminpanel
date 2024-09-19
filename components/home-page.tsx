@@ -37,16 +37,6 @@ const getIconForLink = (url: string) => {
 export function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-
-  // Cursor personalizado que sigue el ratón
-  useEffect(() => {
-    const updateCursorPosition = (e: MouseEvent) => {
-      setCursorPosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", updateCursorPosition);
-    return () => window.removeEventListener("mousemove", updateCursorPosition);
-  }, []);
 
   // Barra de progreso de scroll
   const handleScroll = () => {
@@ -146,7 +136,7 @@ export function HomePage() {
         <nav
           className={`${
             isMenuOpen ? "flex" : "hidden"
-          } fixed top-0 left-0 w-full h-full bg-purple-700 bg-opacity-95 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
+          } fixed top-0 left-0 w-full h-full bg-purple-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
           {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
             (item) => (
@@ -450,3 +440,4 @@ export function HomePage() {
     </div>
   );
 }
+
