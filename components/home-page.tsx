@@ -51,7 +51,8 @@ export function HomePage() {
   // Barra de progreso de scroll
   const handleScroll = () => {
     const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
     const progress = (scrollTop / docHeight) * 100;
     setScrollPosition(progress);
   };
@@ -113,33 +114,32 @@ export function HomePage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
-      {/* Cursor personalizado */}
-      <motion.div
-        className="fixed top-0 left-0 w-10 h-10 bg-white/50 rounded-full pointer-events-none z-50"
-        animate={{ x: cursorPosition.x - 20, y: cursorPosition.y - 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      />
-
       {/* Barra de progreso del scroll */}
       <motion.div
         className="fixed top-0 left-0 h-2 bg-purple-600 z-50"
         style={{ width: `${scrollPosition}%` }}
       />
 
-<header
+      <header
         className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-20 transition-all duration-300 ${
           scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"
         }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
           <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
-          <span className="ml-2 text-2xl font-bold text-white">Codificatufuturo</span>
+          <span className="ml-2 text-2xl font-bold text-white">
+            Codificatufuturo
+          </span>
         </Link>
         <button
           className="ml-auto lg:hidden text-white"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {isMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </button>
 
         {/* Menú hamburguesa en móvil */}
@@ -148,30 +148,34 @@ export function HomePage() {
             isMenuOpen ? "flex" : "hidden"
           } fixed top-0 left-0 w-full h-full bg-purple-700 bg-opacity-95 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map((item) => (
-            <Link
-              key={item}
-              className="text-2xl font-bold text-white py-4"
-              href={`#${item}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {item.charAt(0).toUpperCase() + item.slice(1)}
-            </Link>
-          ))}
+          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+            (item) => (
+              <Link
+                key={item}
+                className="text-2xl font-bold text-white py-4"
+                href={`#${item}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Menú de navegación en desktop */}
         <nav className="hidden lg:flex gap-6 ml-auto">
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map((item) => (
-            <Link
-              key={item}
-              className="text-sm font-medium text-white relative group"
-              href={`#${item}`}
-            >
-              {item.charAt(0).toUpperCase() + item.slice(1)}
-              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
-            </Link>
-          ))}
+          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+            (item) => (
+              <Link
+                key={item}
+                className="text-sm font-medium text-white relative group"
+                href={`#${item}`}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+                <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+              </Link>
+            )
+          )}
         </nav>
       </header>
 
@@ -246,7 +250,11 @@ export function HomePage() {
                         {article.title}
                       </h3>
                       <p className="text-white/80 mb-4">{article.desc}</p>
-                      <Link href={article.pdf} target="_blank" rel="noopener noreferrer">
+                      <Link
+                        href={article.pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
                           {article.badge}
                         </Badge>
@@ -283,7 +291,11 @@ export function HomePage() {
                       </h3>
                       <p className="text-white/80">{video.desc}</p>
                       {video.link ? (
-                        <Link href={video.link} target="_blank" rel="noopener noreferrer">
+                        <Link
+                          href={video.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300 cursor-pointer">
                             {video.badge}
                           </Badge>
@@ -302,7 +314,10 @@ export function HomePage() {
         </section>
 
         {/* Sección "Sobre Mí" con efecto morphing */}
-        <section id="sobre-mi" className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg">
+        <section
+          id="sobre-mi"
+          className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
+        >
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
               Sobre Mí
@@ -332,21 +347,21 @@ export function HomePage() {
                         Jesús Romero
                       </h3>
                       <p className="text-white/80 mb-4">
-                      Soy un apasionado creador de contenido con una profunda
-                      conexión con la tecnología. A lo largo de los años, he
-                      acumulado experiencia en la reparación y mantenimiento de
-                      computadoras, la configuración de redes inalámbricas y el
-                      desarrollo web. Mi objetivo principal es compartir
-                      conocimientos y experiencias que inspiren y ayuden a otros
-                      a alcanzar sus metas.
-                    </p>
-                    <p className="text-white/80">
-                      A través de artículos, videos y tutoriales, busco
-                      proporcionar contenido valioso y práctico que marque la
-                      diferencia en la vida de mis seguidores. ¡Te invito a
-                      unirte a mí en este emocionante viaje de aprendizaje y
-                      crecimiento continuo!
-                    </p>
+                        Soy un apasionado creador de contenido con una profunda
+                        conexión con la tecnología. A lo largo de los años, he
+                        acumulado experiencia en la reparación y mantenimiento
+                        de computadoras, la configuración de redes inalámbricas
+                        y el desarrollo web. Mi objetivo principal es compartir
+                        conocimientos y experiencias que inspiren y ayuden a
+                        otros a alcanzar sus metas.
+                      </p>
+                      <p className="text-white/80">
+                        A través de artículos, videos y tutoriales, busco
+                        proporcionar contenido valioso y práctico que marque la
+                        diferencia en la vida de mis seguidores. ¡Te invito a
+                        unirte a mí en este emocionante viaje de aprendizaje y
+                        crecimiento continuo!
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -366,12 +381,27 @@ export function HomePage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
-                { url: "https://www.instagram.com/kamscomputers/", name: "Instagram" },
-                { url: "https://www.youtube.com/@codificatufuturo", name: "YouTube" },
-                { url: "https://www.linkedin.com/in/jesús-romero-7202b1264/", name: "LinkedIn" },
+                {
+                  url: "https://www.instagram.com/kamscomputers/",
+                  name: "Instagram",
+                },
+                {
+                  url: "https://www.youtube.com/@codificatufuturo",
+                  name: "YouTube",
+                },
+                {
+                  url: "https://www.linkedin.com/in/jesús-romero-7202b1264/",
+                  name: "LinkedIn",
+                },
                 { url: "https://github.com/Arnaldocloud", name: "GitHub" },
-                { url: "https://www.facebook.com/codificatufuturo/", name: "Facebook" },
-                { url: "https://www.twitch.tv/codificatufuturo", name: "Twitch" },
+                {
+                  url: "https://www.facebook.com/codificatufuturo/",
+                  name: "Facebook",
+                },
+                {
+                  url: "https://www.twitch.tv/codificatufuturo",
+                  name: "Twitch",
+                },
               ].map((link, index) => {
                 const Icon = getIconForLink(link.url);
                 return (
