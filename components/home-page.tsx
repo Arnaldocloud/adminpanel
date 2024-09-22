@@ -106,13 +106,13 @@ export function HomePage() {
     <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Barra de progreso del scroll */}
       <motion.div
-        className="fixed top-0 left-0 h-2 bg-purple-800 z-50"
+        className="fixed top-0 left-0 h-2 bg-yellow-600 z-50"
         style={{ width: `${scrollPosition}%` }}
       />
 
       <header
-        className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-20 transition-all duration-300 ${
-          scrollPosition > 50 ? "bg-purple-600 shadow-lg" : "bg-transparent"
+        className={`px-4 lg:px-6 h-16 flex items-center sticky top-0 w-full z-20 ${
+          scrollPosition > -0 ? "bg-black bg-opacity-600 shadow-lg" : "bg-transparent"
         }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
@@ -139,7 +139,7 @@ export function HomePage() {
         <nav
           className={`${
             isMenuOpen ? "flex" : "hidden"
-          } fixed top-0 left-0 w-full h-full bg-purple-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
+          } fixed top-0 left-0 w-full h-full bg-black bg-opacity-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
           {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
             (item) => (
@@ -209,7 +209,7 @@ export function HomePage() {
                     type="email"
                   />
                   <Button
-                    className="bg-white text-yellow-600 hover:bg-purple-600 hover:text-white transition-all duration-300 drop-shadow-md"
+                    className="bg-white text-yellow-600 hover:bg-yellow-600 hover:text-white transition-all duration-300 drop-shadow-md"
                     type="submit"
                   >
                     Suscribirse
@@ -250,7 +250,7 @@ export function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-yellow-600 transition-colors duration-300 cursor-pointer">
+                        <Badge className="mt-4 bg-white text-yellow-600 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
                           {article.badge}
                         </Badge>
                       </Link>
@@ -293,7 +293,7 @@ export function HomePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-yellow-600 transition-colors duration-300 cursor-pointer">
+                          <Badge className="mt-4 bg-white text-yellow-600 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
                             {video.badge}
                           </Badge>
                         </Link>
@@ -375,7 +375,7 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl  text-yellow-600 text-center mb-8 drop-shadow-md">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl  text-white text-center mb-8 drop-shadow-md">
               Mis Enlaces
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
