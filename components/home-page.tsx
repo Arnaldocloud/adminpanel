@@ -103,12 +103,14 @@ export function HomePage() {
   ];
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
+<div className="relative flex flex-col min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+
       {/* Barra de progreso del scroll */}
       <motion.div
-        className="fixed top-0 left-0 h-2 bg-purple-600 z-50"
-        style={{ width: `${scrollPosition}%` }}
-      />
+  className="fixed top-0 left-0 h-2 bg-purple-800 z-50"
+  style={{ width: `${scrollPosition}%` }}
+/>
+
 
       <header
         className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-20 transition-all duration-300 ${
@@ -116,13 +118,14 @@ export function HomePage() {
         }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
-          <BookOpen className="h-6 w-6 text-white transition-transform duration-300 hover:scale-110" />
-          <span className="ml-2 text-2xl font-bold text-white">
+          <BookOpen className="h-6 w-6 text-yellow-600
+ transition-transform duration-300 hover:scale-110 drop-shadow-md" />
+          <span className="ml-2 text-2xl font-bold  text-yellow-600 drop-shadow-md">
             Codificatufuturo
           </span>
         </Link>
         <button
-          className="ml-auto lg:hidden text-white"
+          className="ml-auto lg:hidden text-yellow-600 drop-shadow-md"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? (
@@ -142,7 +145,7 @@ export function HomePage() {
             (item) => (
               <Link
                 key={item}
-                className="text-2xl font-bold text-white py-4"
+                className="text-2xl font-bold  text-yellow-600 py-4 drop-shadow-md"
                 href={`#${item}`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -158,11 +161,11 @@ export function HomePage() {
             (item) => (
               <Link
                 key={item}
-                className="text-sm font-medium text-white relative group"
+                className="text-sm font-medium  text-yellow-600 relative group drop-shadow-md"
                 href={`#${item}`}
               >
                 {item.charAt(0).toUpperCase() + item.slice(1)}
-                <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+                <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out drop-shadow-md"></span>
               </Link>
             )
           )}
@@ -188,23 +191,23 @@ export function HomePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6 }}
               >
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white">
-                  Bienvenidos a mi mundo creativo
-                </h1>
-                <p className="mx-auto max-w-[700px] text-white md:text-xl">
-                  Explora mis artículos, videos y más. Mantente actualizado con
-                  todo mi contenido.
-                </p>
+               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none  text-white drop-shadow-md">
+  Bienvenidos a mi mundo creativo
+</h1>
+<p className="mx-auto max-w-[700px]  text-white md:text-xl drop-shadow-md">
+  Explora mis artículos, videos y más. Mantente actualizado con todo mi contenido.
+</p>
+
               </motion.div>
               <div className="w-full max-w-sm space-y-2">
                 <form className="flex space-x-2">
                   <Input
-                    className="max-w-lg flex-1 bg-white/10 text-white placeholder:text-white/70 focus:ring-2 focus:ring-white transition-all duration-300"
+                    className="max-w-lg flex-1 bg-white/10 text-white placeholder:text-white/70 focus:ring-2 focus:ring-white transition-all duration-300 drop-shadow-md"
                     placeholder="Ingresa tu email"
                     type="email"
                   />
                   <Button
-                    className="bg-white text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300"
+                    className="bg-white text-yellow-600 hover:bg-purple-600 hover:text-white transition-all duration-300 drop-shadow-md"
                     type="submit"
                   >
                     Suscribirse
@@ -221,7 +224,7 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8 drop-shadow-md">
               Artículos Destacados
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -235,8 +238,8 @@ export function HomePage() {
                 >
                   <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
                     <CardContent className="p-6">
-                      <FileText className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-                      <h3 className="text-2xl font-bold text-white mb-2">
+                      <FileText className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
                         {article.title}
                       </h3>
                       <p className="text-white/80 mb-4">{article.desc}</p>
@@ -245,7 +248,7 @@ export function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
+                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
                           {article.badge}
                         </Badge>
                       </Link>
@@ -263,7 +266,7 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8 drop-shadow-md">
               Videos Populares
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -275,23 +278,23 @@ export function HomePage() {
                 >
                   <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
                     <CardContent className="p-6">
-                      <Video className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-                      <h3 className="text-2xl font-bold text-white mb-2">
+                      <Video className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
                         {video.title}
                       </h3>
-                      <p className="text-white/80">{video.desc}</p>
+                      <p className="text-white/80 drop-shadow-md">{video.desc}</p>
                       {video.link ? (
                         <Link
                           href={video.link}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300 cursor-pointer">
+                          <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-red-600 transition-colors duration-300 cursor-pointer">
                             {video.badge}
                           </Badge>
                         </Link>
                       ) : (
-                        <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white group-hover:text-red-600 transition-colors duration-300">
+                        <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-red-600 transition-colors duration-300">
                           {video.badge}
                         </Badge>
                       )}
@@ -309,7 +312,7 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl   text-center mb-8 drop-shadow-md">
               Sobre Mí
             </h2>
             <motion.div
@@ -322,7 +325,7 @@ export function HomePage() {
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row items-center gap-6">
                     <div className="w-full md:w-1/3">
-                      <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group">
+                      <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group drop-shadow-md">
                         <Image
                           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
                           alt="Tu Nombre"
@@ -333,7 +336,7 @@ export function HomePage() {
                       </div>
                     </div>
                     <div className="w-full md:w-2/3">
-                      <h3 className="text-2xl font-bold text-white mb-4">
+                      <h3 className="text-2xl font-bold text-white mb-4 drop-shadow-md">
                         Jesús Romero
                       </h3>
                       <p className="text-white/80 mb-4">
@@ -345,7 +348,7 @@ export function HomePage() {
                         conocimientos y experiencias que inspiren y ayuden a
                         otros a alcanzar sus metas.
                       </p>
-                      <p className="text-white/80">
+                      <p className="text-white/80 drop-shadow-md">
                         A través de artículos, videos y tutoriales, busco
                         proporcionar contenido valioso y práctico que marque la
                         diferencia en la vida de mis seguidores. ¡Te invito a
@@ -366,7 +369,7 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl  text-yellow-600 text-center mb-8 drop-shadow-md">
               Mis Enlaces
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -406,8 +409,8 @@ export function HomePage() {
                       rel="noopener noreferrer"
                       className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-lg rounded-lg hover:bg-white/30 transition-all duration-300 group"
                     >
-                      <Icon className="h-8 w-8 text-white mb-2 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-sm font-medium text-white text-center">
+                      <Icon className="h-8 w-8  text-yellow-600 mb-2 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <span className="text-sm font-medium  text-yellow-600 text-center drop-shadow-md">
                         {link.name}
                       </span>
                     </Link>
@@ -419,18 +422,18 @@ export function HomePage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t border-white/10">
-        <p className="text-xs text-white/70">
+        <p className="text-xs text-white/70 drop-shadow-md">
           © 2024 Codificatufuturo. Todos los derechos reservados.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300"
+            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300 drop-shadow-md"
             href="#"
           >
             Términos de Servicio
           </Link>
           <Link
-            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300"
+            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300 drop-shadow-md"
             href="#"
           >
             Privacidad
