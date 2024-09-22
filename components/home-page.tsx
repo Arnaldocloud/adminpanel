@@ -194,9 +194,11 @@ export function HomePage() {
                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none  text-white drop-shadow-md">
   Bienvenidos a mi mundo creativo
 </h1>
+<br />
 <p className="mx-auto max-w-[700px]  text-white md:text-xl drop-shadow-md">
   Explora mis artículos, videos y más. Mantente actualizado con todo mi contenido.
 </p>
+<br />
 
               </motion.div>
               <div className="w-full max-w-sm space-y-2">
@@ -248,7 +250,7 @@ export function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
+                        <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-yellow-600 transition-colors duration-300 cursor-pointer">
                           {article.badge}
                         </Badge>
                       </Link>
@@ -289,7 +291,7 @@ export function HomePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-red-600 transition-colors duration-300 cursor-pointer">
+                          <Badge className="mt-4 bg-purple-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-yellow-600 transition-colors duration-300 cursor-pointer">
                             {video.badge}
                           </Badge>
                         </Link>
@@ -339,7 +341,7 @@ export function HomePage() {
                       <h3 className="text-2xl font-bold text-white mb-4 drop-shadow-md">
                         Jesús Romero
                       </h3>
-                      <p className="text-white/80 mb-4">
+                      <p className="text-white/80 mb-4 drop-shadow-md">
                         Soy un apasionado creador de contenido con una profunda
                         conexión con la tecnología. A lo largo de los años, he
                         acumulado experiencia en la reparación y mantenimiento
@@ -348,6 +350,7 @@ export function HomePage() {
                         conocimientos y experiencias que inspiren y ayuden a
                         otros a alcanzar sus metas.
                       </p>
+                      
                       <p className="text-white/80 drop-shadow-md">
                         A través de artículos, videos y tutoriales, busco
                         proporcionar contenido valioso y práctico que marque la
