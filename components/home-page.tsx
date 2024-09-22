@@ -103,14 +103,12 @@ export function HomePage() {
   ];
 
   return (
-<div className="relative flex flex-col min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-
+    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Barra de progreso del scroll */}
       <motion.div
-  className="fixed top-0 left-0 h-2 bg-purple-800 z-50"
-  style={{ width: `${scrollPosition}%` }}
-/>
-
+        className="fixed top-0 left-0 h-2 bg-purple-800 z-50"
+        style={{ width: `${scrollPosition}%` }}
+      />
 
       <header
         className={`px-4 lg:px-6 h-16 flex items-center fixed w-full z-20 transition-all duration-300 ${
@@ -118,8 +116,10 @@ export function HomePage() {
         }`}
       >
         <Link className="flex items-center justify-center" href="#inicio">
-          <BookOpen className="h-6 w-6 text-yellow-600
- transition-transform duration-300 hover:scale-110 drop-shadow-md" />
+          <BookOpen
+            className="h-6 w-6 text-yellow-600
+ transition-transform duration-300 hover:scale-110 drop-shadow-md"
+          />
           <span className="ml-2 text-2xl font-bold  text-yellow-600 drop-shadow-md">
             Codificatufuturo
           </span>
@@ -191,15 +191,15 @@ export function HomePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6 }}
               >
-               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none  text-white drop-shadow-md">
-  Bienvenidos a mi mundo creativo
-</h1>
-<br />
-<p className="mx-auto max-w-[700px]  text-white md:text-xl drop-shadow-md">
-  Explora mis artículos, videos y más. Mantente actualizado con todo mi contenido.
-</p>
-<br />
-
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none  text-white drop-shadow-md">
+                  Bienvenidos a mi mundo creativo
+                </h1>
+                <br />
+                <p className="mx-auto max-w-[700px]  text-white md:text-xl drop-shadow-md">
+                  Explora mis artículos, videos y más. Mantente actualizado con
+                  todo mi contenido.
+                </p>
+                <br />
               </motion.div>
               <div className="w-full max-w-sm space-y-2">
                 <form className="flex space-x-2">
@@ -284,7 +284,9 @@ export function HomePage() {
                       <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
                         {video.title}
                       </h3>
-                      <p className="text-white/80 drop-shadow-md">{video.desc}</p>
+                      <p className="text-white/80 drop-shadow-md">
+                        {video.desc}
+                      </p>
                       {video.link ? (
                         <Link
                           href={video.link}
@@ -314,7 +316,8 @@ export function HomePage() {
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl   text-center mb-8 drop-shadow-md">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+              {" "}
               Sobre Mí
             </h2>
             <motion.div
@@ -350,7 +353,7 @@ export function HomePage() {
                         conocimientos y experiencias que inspiren y ayuden a
                         otros a alcanzar sus metas.
                       </p>
-                      
+
                       <p className="text-white/80 drop-shadow-md">
                         A través de artículos, videos y tutoriales, busco
                         proporcionar contenido valioso y práctico que marque la
@@ -446,4 +449,3 @@ export function HomePage() {
     </div>
   );
 }
-
