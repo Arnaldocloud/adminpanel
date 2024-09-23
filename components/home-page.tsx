@@ -141,7 +141,7 @@ export function HomePage() {
             isMenuOpen ? "flex" : "hidden"
           } fixed top-0 left-0 w-full h-full bg-black bg-opacity-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
             (item) => (
               <Link
                 key={item}
