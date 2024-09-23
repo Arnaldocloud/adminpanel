@@ -157,7 +157,7 @@ export function HomePage() {
 
         {/* Menú de navegación en desktop */}
         <nav className="hidden lg:flex gap-6 ml-auto">
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
             (item) => (
               <Link
                 key={item}
