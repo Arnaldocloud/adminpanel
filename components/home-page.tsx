@@ -312,7 +312,7 @@ export function HomePage() {
 
         {/* Sección "Sobre Mí" con efecto morphing */}
         <section
-          id="sobre-mi"
+          id="sobre-mí"
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
