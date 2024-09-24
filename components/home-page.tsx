@@ -86,7 +86,7 @@ export function HomePage() {
       title: "Video Trending",
       desc: "Mira mi video más popular de esta semana.",
       badge: "YouTube",
-      link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8&t=3s",
+      link: "https://www.youtube.com/watch?v=hEiFYu2QR50",
     },
     {
       title: "Tutorial Paso a Paso",
