@@ -127,7 +127,7 @@ export function HomePage() {
         <button
           className="ml-auto lg:hidden text-yellow-600 drop-shadow-md"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
+        >Jesus Romero
           {isMenuOpen ? (
             <X className="h-6 w-6" />
           ) : (
