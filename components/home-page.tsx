@@ -209,7 +209,7 @@ export function HomePage() {
                     type="email"
                   />
                   <Button
-                    className="bg-white text-yellow-600 hover:bg-yellow-600 hover:text-white transition-all duration-300 drop-shadow-md"
+                    className="bg-white text-yellow-900 hover:bg-yellow-600 hover:text-white transition-all duration-300 drop-shadow-md"
                     type="submit"
                   >
                     Suscribirse
@@ -250,7 +250,7 @@ export function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Badge className="mt-4 bg-white text-yellow-600 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
+                        <Badge className="mt-4 bg-white text-yellow-900 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
                           {article.badge}
                         </Badge>
                       </Link>
@@ -293,7 +293,7 @@ export function HomePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <Badge className="mt-4 bg-white text-yellow-600 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
+                          <Badge className="mt-4 bg-white text-yellow-900 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
                             {video.badge}
                           </Badge>
                         </Link>
