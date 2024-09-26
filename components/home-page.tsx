@@ -86,7 +86,7 @@ export function HomePage() {
       title: "Video Trending",
       desc: "Mira mi video más popular de esta semana.",
       badge: "YouTube",
-      link: "https://www.youtube.com/watch?v=DvdJ1E5pbT8&t=3s",
+      link: "https://www.youtube.com/watch?v=hEiFYu2QR50",
     },
     {
       title: "Tutorial Paso a Paso",
@@ -141,7 +141,7 @@ export function HomePage() {
             isMenuOpen ? "flex" : "hidden"
           } fixed top-0 left-0 w-full h-full bg-black bg-opacity-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
         >
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
             (item) => (
               <Link
                 key={item}
@@ -157,7 +157,7 @@ export function HomePage() {
 
         {/* Menú de navegación en desktop */}
         <nav className="hidden lg:flex gap-6 ml-auto">
-          {["inicio", "articulos", "videos", "sobre-mi", "enlaces"].map(
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
             (item) => (
               <Link
                 key={item}
@@ -312,7 +312,7 @@ export function HomePage() {
 
         {/* Sección "Sobre Mí" con efecto morphing */}
         <section
-          id="sobre-mi"
+          id="sobre-mí"
           className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
         >
           <div className="container px-4 md:px-6">
