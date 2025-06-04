@@ -110,6 +110,9 @@ export default function BingoAdminPanel() {
   // Nuevos estados para órdenes
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
 
+  // Estado para configuración de WhatsApp
+  const [whatsappConfig, setWhatsappConfig] = useState<any>(null)
+
   // Estados para formularios existentes
   const [newPlayerName, setNewPlayerName] = useState("")
   const [newPlayerEmail, setNewPlayerEmail] = useState("")
@@ -214,42 +217,40 @@ export default function BingoAdminPanel() {
     setCurrentGame(true)
     addToHistory("Número cantado", newNumber.toString())
 
-    // Notificar número cantado por WhatsApp
-    const notifyNumberCalled = async () => {
-      try {
-        // Obtener jugadores con números de teléfono válidos
-        const playersForNotification = players
-          .map((player) => {
-            // Buscar el teléfono en las órdenes verificadas
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
-            return {
-              phone: order?.playerPhone || "",
-              name: player.name,
-            }
-          })
-          .filter((p) => p.phone && p.phone.length > 0)
+    // Notificar número cantado por WhatsApp solo si está habilitado
+    if (whatsappConfig?.enabled && whatsappConfig?.numberCalled) {
+      const notifyNumberCalled = async () => {
+        try {
+          const playersForNotification = players
+            .map((player) => {
+              const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+              return {
+                phone: order?.playerPhone || "",
+                name: player.name,
+              }
+            })
+            .filter((p) => p.phone && p.phone.length > 0)
 
-        if (playersForNotification.length > 0) {
-          await fetch("/api/notifications/game-events", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: "number-called",
-              players: playersForNotification,
-              number: newNumber,
-              totalCalled: calledNumbers.length + 1,
-            }),
-          })
-          console.log(`📱 Notificación de número ${newNumber} enviada a ${playersForNotification.length} jugadores`)
+          if (playersForNotification.length > 0) {
+            await fetch("/api/notifications/game-events", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "number-called",
+                players: playersForNotification,
+                number: newNumber,
+                totalCalled: calledNumbers.length + 1,
+              }),
+            })
+          }
+        } catch (error) {
+          console.error("Error sending number called notification:", error)
         }
-      } catch (error) {
-        console.error("Error sending number called notification:", error)
       }
+      notifyNumberCalled()
     }
-
-    notifyNumberCalled()
   }
 
   const checkWinners = () => {
@@ -274,12 +275,12 @@ export default function BingoAdminPanel() {
       addToHistory("¡BINGO!", `${newWinners.length} ganador(es)`)
     }
 
-    // Notificar ganadores por WhatsApp
-    if (newWinners.length > 0) {
+    // Notificar ganadores por WhatsApp solo si está habilitado
+    if (whatsappConfig?.enabled && whatsappConfig?.bingoWinner && newWinners.length > 0) {
       newWinners.forEach(async (winner) => {
         try {
-          // Solo enviar si el email parece ser un número de teléfono
-          if (winner.player.email && !winner.player.email.includes("@")) {
+          const order = purchaseOrders.find((o) => o.playerEmail === winner.player.email && o.status === "verified")
+          if (order?.playerPhone) {
             await fetch("/api/notifications/game-events", {
               method: "POST",
               headers: {
@@ -289,12 +290,11 @@ export default function BingoAdminPanel() {
                 type: "bingo-winner",
                 winner: {
                   name: winner.player.name,
-                  phone: winner.player.email,
+                  phone: order.playerPhone,
                   cardId: winner.card.id,
                 },
               }),
             })
-            console.log(`✅ Notificación de ganador enviada: ${winner.player.name}`)
           }
         } catch (error) {
           console.error("Error sending winner notification:", error)
@@ -310,38 +310,38 @@ export default function BingoAdminPanel() {
     setCurrentGame(false)
     addToHistory("Juego reiniciado", "Nuevo juego iniciado")
 
-    // Notificar reinicio de juego
-    const notifyGameReset = async () => {
-      try {
-        const playersForNotification = players
-          .map((player) => {
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
-            return {
-              phone: order?.playerPhone || "",
-              name: player.name,
-            }
-          })
-          .filter((p) => p.phone && p.phone.length > 0)
+    // Notificar reinicio de juego solo si está habilitado
+    if (whatsappConfig?.enabled && whatsappConfig?.gameReset) {
+      const notifyGameReset = async () => {
+        try {
+          const playersForNotification = players
+            .map((player) => {
+              const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+              return {
+                phone: order?.playerPhone || "",
+                name: player.name,
+              }
+            })
+            .filter((p) => p.phone && p.phone.length > 0)
 
-        if (playersForNotification.length > 0) {
-          await fetch("/api/notifications/game-events", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: "game-reset",
-              players: playersForNotification,
-            }),
-          })
-          console.log(`📱 Notificación de reinicio enviada a ${playersForNotification.length} jugadores`)
+          if (playersForNotification.length > 0) {
+            await fetch("/api/notifications/game-events", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "game-reset",
+                players: playersForNotification,
+              }),
+            })
+          }
+        } catch (error) {
+          console.error("Error sending game reset notification:", error)
         }
-      } catch (error) {
-        console.error("Error sending game reset notification:", error)
       }
+      notifyGameReset()
     }
-
-    notifyGameReset()
   }
 
   const startGame = () => {
@@ -353,38 +353,38 @@ export default function BingoAdminPanel() {
     setCurrentGame(true)
     addToHistory("Juego iniciado", `${players.length} jugadores participando`)
 
-    // Notificar inicio de juego
-    const notifyGameStarted = async () => {
-      try {
-        const playersForNotification = players
-          .map((player) => {
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
-            return {
-              phone: order?.playerPhone || "",
-              name: player.name,
-            }
-          })
-          .filter((p) => p.phone && p.phone.length > 0)
+    // Notificar inicio de juego solo si está habilitado
+    if (whatsappConfig?.enabled && whatsappConfig?.gameStarted) {
+      const notifyGameStarted = async () => {
+        try {
+          const playersForNotification = players
+            .map((player) => {
+              const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+              return {
+                phone: order?.playerPhone || "",
+                name: player.name,
+              }
+            })
+            .filter((p) => p.phone && p.phone.length > 0)
 
-        if (playersForNotification.length > 0) {
-          await fetch("/api/notifications/game-events", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: "game-started",
-              players: playersForNotification,
-            }),
-          })
-          console.log(`📱 Notificación de inicio enviada a ${playersForNotification.length} jugadores`)
+          if (playersForNotification.length > 0) {
+            await fetch("/api/notifications/game-events", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "game-started",
+                players: playersForNotification,
+              }),
+            })
+          }
+        } catch (error) {
+          console.error("Error sending game started notification:", error)
         }
-      } catch (error) {
-        console.error("Error sending game started notification:", error)
       }
+      notifyGameStarted()
     }
-
-    notifyGameStarted()
   }
 
   const clearAll = () => {
@@ -441,7 +441,6 @@ export default function BingoAdminPanel() {
         setPlayers((prev) => {
           const existingPlayerIndex = prev.findIndex((p) => p.id === order.playerEmail)
           if (existingPlayerIndex >= 0) {
-            // Actualizar jugador existente
             const updatedPlayers = [...prev]
             updatedPlayers[existingPlayerIndex] = {
               ...updatedPlayers[existingPlayerIndex],
@@ -450,7 +449,6 @@ export default function BingoAdminPanel() {
             }
             return updatedPlayers
           } else {
-            // Agregar nuevo jugador
             return [...prev, newPlayer]
           }
         })
@@ -459,46 +457,48 @@ export default function BingoAdminPanel() {
       }
     }
 
-    // Enviar notificaciones de WhatsApp
-    if (newStatus === "verified") {
-      try {
-        const order = purchaseOrders.find((o) => o.id === orderId)
-        if (order) {
-          await fetch("/api/notifications/payment-verified", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              playerName: order.playerName,
-              playerPhone: order.playerPhone,
-              orderId: order.id,
-              cartCount: order.cartItems.length,
-            }),
-          })
+    // Enviar notificaciones de WhatsApp solo si están habilitadas
+    if (whatsappConfig?.enabled) {
+      if (newStatus === "verified" && whatsappConfig?.paymentVerified) {
+        try {
+          const order = purchaseOrders.find((o) => o.id === orderId)
+          if (order) {
+            await fetch("/api/notifications/payment-verified", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                playerName: order.playerName,
+                playerPhone: order.playerPhone,
+                orderId: order.id,
+                cartCount: order.cartItems.length,
+              }),
+            })
+          }
+        } catch (error) {
+          console.error("Error sending verification notification:", error)
         }
-      } catch (error) {
-        console.error("Error sending verification notification:", error)
-      }
-    } else if (newStatus === "rejected") {
-      try {
-        const order = purchaseOrders.find((o) => o.id === orderId)
-        if (order) {
-          await fetch("/api/notifications/payment-rejected", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              playerName: order.playerName,
-              playerPhone: order.playerPhone,
-              orderId: order.id,
-              reason: "Pago no verificado", // Puedes hacer esto configurable
-            }),
-          })
+      } else if (newStatus === "rejected" && whatsappConfig?.paymentRejected) {
+        try {
+          const order = purchaseOrders.find((o) => o.id === orderId)
+          if (order) {
+            await fetch("/api/notifications/payment-rejected", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                playerName: order.playerName,
+                playerPhone: order.playerPhone,
+                orderId: order.id,
+                reason: "Pago no verificado",
+              }),
+            })
+          }
+        } catch (error) {
+          console.error("Error sending rejection notification:", error)
         }
-      } catch (error) {
-        console.error("Error sending rejection notification:", error)
       }
     }
   }
@@ -527,8 +527,20 @@ export default function BingoAdminPanel() {
 
   useEffect(() => {
     loadPurchaseOrders()
-    const interval = setInterval(loadPurchaseOrders, 5000) // Actualizar cada 5 segundos
+    const interval = setInterval(loadPurchaseOrders, 5000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Cargar configuración de WhatsApp
+  useEffect(() => {
+    const savedConfig = localStorage.getItem("whatsapp-notifications-config")
+    if (savedConfig) {
+      try {
+        setWhatsappConfig(JSON.parse(savedConfig))
+      } catch (error) {
+        console.error("Error loading WhatsApp config:", error)
+      }
+    }
   }, [])
 
   // Estadísticas
@@ -1264,7 +1276,7 @@ export default function BingoAdminPanel() {
 
             {/* Configuración de WhatsApp */}
             <TabsContent value="whatsapp" className="space-y-6">
-              <WhatsAppConfig />
+              <WhatsAppConfig onConfigChange={setWhatsappConfig} />
             </TabsContent>
           </Tabs>
         </Card>
