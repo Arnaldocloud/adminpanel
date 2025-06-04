@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Settings, Send, CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react"
+import { MessageCircle, Settings, Send, CheckCircle, XCircle, AlertTriangle, Info, Bug, RefreshCw } from "lucide-react"
 
 interface WhatsAppConfigProps {
   onConfigChange?: (config: any) => void
@@ -31,6 +31,8 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
   const [isMockMode, setIsMockMode] = useState(false)
   const [environmentInfo, setEnvironmentInfo] = useState<any>(null)
   const [isCheckingEnv, setIsCheckingEnv] = useState(true)
+  const [diagnostics, setDiagnostics] = useState<any>(null)
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
 
   // Verificar si estamos en modo simulación
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
         setEnvironmentInfo({ environment, mockMode })
       } catch (error) {
         console.error("Error checking environment:", error)
-        setIsMockMode(true) // Asumir modo simulación si hay error
+        setIsMockMode(true)
         setEnvironmentInfo({ environment: "unknown", mockMode: true, error: true })
       } finally {
         setIsCheckingEnv(false)
@@ -60,6 +62,82 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
 
     checkEnvVars()
   }, [])
+
+  const runDiagnostics = async () => {
+    try {
+      console.log("🔍 Ejecutando diagnósticos completos...")
+
+      const response = await fetch("/api/notifications/debug", {
+        method: "GET",
+      })
+
+      const result = await response.json()
+      setDiagnostics(result)
+      setShowDiagnostics(true)
+
+      console.log("📊 Diagnósticos completos:", result)
+    } catch (error) {
+      console.error("Error running diagnostics:", error)
+      setDiagnostics({ error: "Failed to run diagnostics" })
+    }
+  }
+
+  const runProductionTest = async () => {
+    if (!testPhone) {
+      alert("Por favor ingresa un número de teléfono")
+      return
+    }
+
+    setTestStatus("sending")
+
+    try {
+      console.log("🧪 Ejecutando prueba completa de producción...")
+
+      const response = await fetch("/api/notifications/debug", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: testPhone,
+          testType: "production",
+        }),
+      })
+
+      const result = await response.json()
+      console.log("🧪 Resultado de prueba:", result)
+
+      if (response.ok && result.success) {
+        setTestStatus("success")
+        setDiagnostics(result)
+        setTimeout(() => setTestStatus("idle"), 5000)
+      } else {
+        setTestStatus("error")
+        setDiagnostics(result)
+
+        let errorMessage = "Error en la prueba de producción:\n\n"
+
+        if (result.steps) {
+          result.steps.forEach((step: any, index: number) => {
+            errorMessage += `${step.step}. ${step.name}: ${step.success ? "✅" : "❌"}\n`
+            if (!step.success && step.error) {
+              errorMessage += `   Error: ${step.error}\n`
+            }
+          })
+        } else {
+          errorMessage += result.error || "Error desconocido"
+        }
+
+        alert(errorMessage)
+        setTimeout(() => setTestStatus("idle"), 5000)
+      }
+    } catch (error) {
+      console.error("💥 Error en prueba de producción:", error)
+      setTestStatus("error")
+      alert("Error de conexión durante la prueba")
+      setTimeout(() => setTestStatus("idle"), 3000)
+    }
+  }
 
   const handleConfigChange = (key: string, value: boolean) => {
     const newConfig = { ...config, [key]: value }
@@ -101,7 +179,6 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
         console.error("❌ Error del servidor:", result)
         setTestStatus("error")
 
-        // Mostrar error específico al usuario
         let errorMessage = "Error desconocido"
 
         if (result.twilioError) {
@@ -112,7 +189,6 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
           errorMessage = `Error del servidor: ${result.error}`
         }
 
-        // Agregar información de entorno
         if (result.environment) {
           errorMessage += `\n\nEntorno: ${result.environment}`
         }
@@ -221,6 +297,29 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
             </Alert>
           )}
 
+          {/* Botones de diagnóstico */}
+          <div className="flex gap-3 mb-4">
+            <Button
+              onClick={runDiagnostics}
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Bug className="w-4 h-4 mr-2" />
+              Ejecutar Diagnósticos
+            </Button>
+
+            {environmentInfo?.environment === "production" && (
+              <Button
+                onClick={runProductionTest}
+                disabled={testStatus === "sending"}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Prueba Completa de Producción
+              </Button>
+            )}
+          </div>
+
           {isMockMode && (
             <Alert className="border-yellow-300 bg-yellow-50">
               <AlertTriangle className="h-4 w-4" />
@@ -245,6 +344,112 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
           )}
         </CardContent>
       </Card>
+
+      {/* Mostrar diagnósticos si están disponibles */}
+      {showDiagnostics && diagnostics && (
+        <Card className="border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-gray-600 to-slate-600 text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Diagnósticos del Sistema
+              <Button
+                onClick={() => setShowDiagnostics(false)}
+                variant="outline"
+                size="sm"
+                className="ml-auto text-white border-white hover:bg-white hover:text-gray-600"
+              >
+                Cerrar
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <h4 className="font-bold mb-2">Información del Entorno:</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Entorno:</strong> {diagnostics.environment}
+                  </div>
+                  <div>
+                    <strong>Región Vercel:</strong> {diagnostics.vercel?.region}
+                  </div>
+                  <div>
+                    <strong>URL:</strong> {diagnostics.vercel?.url}
+                  </div>
+                  <div>
+                    <strong>Timestamp:</strong> {new Date(diagnostics.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <h4 className="font-bold mb-2">Configuración de Twilio:</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Account SID:</strong>{" "}
+                    {diagnostics.twilio?.accountSidConfigured ? "✅ Configurado" : "❌ No configurado"}
+                  </div>
+                  <div>
+                    <strong>Auth Token:</strong>{" "}
+                    {diagnostics.twilio?.authTokenConfigured ? "✅ Configurado" : "❌ No configurado"}
+                  </div>
+                  <div>
+                    <strong>WhatsApp Number:</strong> {diagnostics.twilio?.whatsappNumber}
+                  </div>
+                  <div>
+                    <strong>Modo Mock:</strong> {diagnostics.twilio?.isMockMode ? "❌ Sí" : "✅ No"}
+                  </div>
+                </div>
+              </div>
+
+              {diagnostics.twilioTest && (
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <h4 className="font-bold mb-2">Prueba de Conexión Twilio:</h4>
+                  {diagnostics.twilioTest.success ? (
+                    <div className="text-green-600">
+                      <p>✅ Conexión exitosa</p>
+                      <p>
+                        <strong>Estado de cuenta:</strong> {diagnostics.twilioTest.accountStatus}
+                      </p>
+                      <p>
+                        <strong>Tipo de cuenta:</strong> {diagnostics.twilioTest.accountType}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-red-600">
+                      <p>❌ Error de conexión</p>
+                      <p>
+                        <strong>Error:</strong> {diagnostics.twilioTest.error}
+                      </p>
+                      <p>
+                        <strong>Código:</strong> {diagnostics.twilioTest.code}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {diagnostics.steps && (
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <h4 className="font-bold mb-2">Pasos de la Prueba:</h4>
+                  {diagnostics.steps.map((step: any, index: number) => (
+                    <div key={index} className={`p-2 mb-2 rounded ${step.success ? "bg-green-100" : "bg-red-100"}`}>
+                      <div className="flex items-center gap-2">
+                        <span>{step.success ? "✅" : "❌"}</span>
+                        <strong>
+                          {step.step}. {step.name}
+                        </strong>
+                      </div>
+                      {step.error && <p className="text-red-600 text-sm mt-1">Error: {step.error}</p>}
+                      {step.messageId && <p className="text-green-600 text-sm mt-1">Message ID: {step.messageId}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resto del componente igual... */}
       {/* Configuración de Tipos de Notificación */}
@@ -311,42 +516,56 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               <p className="text-sm text-gray-500 mt-1">Ingresa tu número para probar las notificaciones</p>
             </div>
 
-            <Button
-              onClick={sendTestMessage}
-              disabled={testStatus === "sending" || !config.enabled}
-              className={`w-full font-bold rounded-lg transition-all duration-200 ${
-                testStatus === "success"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : testStatus === "error"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              }`}
-            >
-              {testStatus === "sending" && (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Enviando...
-                </>
+            <div className="flex gap-3">
+              <Button
+                onClick={sendTestMessage}
+                disabled={testStatus === "sending" || !config.enabled}
+                className={`flex-1 font-bold rounded-lg transition-all duration-200 ${
+                  testStatus === "success"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : testStatus === "error"
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                }`}
+              >
+                {testStatus === "sending" && (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Enviando...
+                  </>
+                )}
+                {testStatus === "success" && (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {isMockMode ? "¡Simulación Exitosa!" : "¡Mensaje Enviado!"}
+                  </>
+                )}
+                {testStatus === "error" && (
+                  <>
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Error al Enviar
+                  </>
+                )}
+                {testStatus === "idle" && (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    {isMockMode ? "Simular Mensaje" : "Enviar Mensaje"}
+                  </>
+                )}
+              </Button>
+
+              {environmentInfo?.environment === "production" && (
+                <Button
+                  onClick={runProductionTest}
+                  disabled={testStatus === "sending" || !testPhone}
+                  variant="outline"
+                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                >
+                  <Bug className="w-4 h-4 mr-2" />
+                  Prueba Completa
+                </Button>
               )}
-              {testStatus === "success" && (
-                <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {isMockMode ? "¡Simulación Exitosa!" : "¡Mensaje Enviado!"}
-                </>
-              )}
-              {testStatus === "error" && (
-                <>
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Error al Enviar
-                </>
-              )}
-              {testStatus === "idle" && (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  {isMockMode ? "Simular Mensaje de Prueba" : "Enviar Mensaje de Prueba"}
-                </>
-              )}
-            </Button>
+            </div>
 
             {testStatus === "success" && (
               <Alert className="border-green-300 bg-green-50">
@@ -363,7 +582,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               <Alert className="border-red-300 bg-red-50">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription className="text-red-800">
-                  ❌ Error al enviar el mensaje. Verifica la configuración de Twilio y revisa los logs del servidor.
+                  ❌ Error al enviar el mensaje. Usa el botón "Ejecutar Diagnósticos" para más información.
                 </AlertDescription>
               </Alert>
             )}
@@ -396,6 +615,8 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
                 3. Agrega las 3 variables de Twilio
                 <br />
                 4. Redeploy tu aplicación
+                <br />
+                5. Usa "Ejecutar Diagnósticos" para verificar
               </AlertDescription>
             </Alert>
 
@@ -405,16 +626,6 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
                 <AlertDescription className="text-red-800">
                   🚨 <strong>Problema en Producción:</strong> Las variables de entorno de Twilio no están configuradas
                   en Vercel. Las notificaciones no funcionarán hasta que las configures.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {isMockMode && environmentInfo?.environment !== "production" && (
-              <Alert className="border-yellow-300 bg-yellow-50">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-yellow-800">
-                  ⚠️ <strong>Modo Desarrollo:</strong> Para probar con mensajes reales en desarrollo, crea un archivo{" "}
-                  <code>.env.local</code> en la raíz del proyecto con las variables de entorno de Twilio.
                 </AlertDescription>
               </Alert>
             )}
