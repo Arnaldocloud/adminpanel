@@ -178,7 +178,16 @@ export default function UserPanel() {
 
     // Enviar notificación de WhatsApp
     try {
-      await fetch("/api/notifications/order-received", {
+      console.log("📱 Enviando notificación de orden recibida...")
+      console.log("📊 Datos:", {
+        playerName: playerInfo.name,
+        playerPhone: playerInfo.phone,
+        orderId: newOrder.id,
+        amount: totalAmount,
+        cartCount: cartItems.length,
+      })
+
+      const response = await fetch("/api/notifications/order-received", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,8 +200,15 @@ export default function UserPanel() {
           cartCount: cartItems.length,
         }),
       })
+
+      const result = await response.json()
+      console.log("📱 Resultado de notificación:", result)
+
+      if (!response.ok) {
+        console.error("❌ Error en la respuesta:", result)
+      }
     } catch (error) {
-      console.error("Error sending WhatsApp notification:", error)
+      console.error("💥 Error enviando notificación de WhatsApp:", error)
     }
 
     setOrders((prev) => [newOrder, ...prev])

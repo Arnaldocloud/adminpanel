@@ -11,51 +11,134 @@ export async function POST(request: NextRequest) {
     // Verificar variables de entorno
     const accountSid = process.env.TWILIO_ACCOUNT_SID
     const authToken = process.env.TWILIO_AUTH_TOKEN
+    const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886"
     const isMockMode = !accountSid || !authToken
 
     console.log("🔧 Modo:", isMockMode ? "SIMULACIÓN" : "PRODUCCIÓN")
     console.log("🌍 Entorno:", process.env.NODE_ENV)
 
-    let result
+    let result = []
 
     if (isMockMode) {
       console.log(`🔸 [MOCK] Notificación de ${type} simulada`)
       result = [{ status: "fulfilled", value: { success: true, mock: true } }]
     } else {
       try {
-        const twilioService = await import("@/lib/twilio")
+        // Importar Twilio directamente
+        const twilio = require("twilio")
+        const client = twilio(accountSid, authToken)
+
+        // Función para formatear número
+        const formatPhone = (phone) => {
+          let cleaned = phone.replace(/[\s\-()]/g, "")
+          if (cleaned.startsWith("0")) cleaned = "+58" + cleaned.substring(1)
+          if (!cleaned.startsWith("+")) cleaned = "+58" + cleaned
+          return cleaned
+        }
+
+        // Función para enviar mensaje
+        const sendMessage = async (to, body) => {
+          console.log(`📤 Enviando a ${to}...`)
+          return client.messages.create({
+            from: whatsappNumber,
+            to: `whatsapp:${formatPhone(to)}`,
+            body,
+          })
+        }
 
         switch (type) {
           case "game-started":
             if (!players || !Array.isArray(players)) {
               return NextResponse.json({ error: "Players array required" }, { status: 400 })
             }
+
             console.log(`🚀 Enviando notificación de inicio a ${players.length} jugadores`)
-            result = await twilioService.notifyGameStarted(players)
+
+            result = await Promise.allSettled(
+              players.map((player) => {
+                const message = `
+🚀 *¡${player.name}, el juego ha comenzado!*
+
+🎯 Ya estamos cantando números. Revisa tus cartones y marca los números que coincidan.
+
+📱 Mantente atento a las actualizaciones del juego.
+
+¡Que tengas suerte! 🍀
+              `.trim()
+
+                return sendMessage(player.phone, message)
+              }),
+            )
             break
 
           case "number-called":
             if (!players || !number || totalCalled === undefined) {
               return NextResponse.json({ error: "Players, number, and totalCalled required" }, { status: 400 })
             }
+
+            // Enviar cada 3 números para no saturar
+            if (totalCalled % 3 !== 0 && totalCalled !== 1) {
+              console.log(`⏭️ Saltando notificación para número ${number} (total: ${totalCalled})`)
+              result = [{ status: "fulfilled", value: { success: true, skipped: true } }]
+              break
+            }
+
             console.log(`📢 Enviando notificación de número ${number} a ${players.length} jugadores`)
-            result = await twilioService.notifyNumberCalled(players, number, totalCalled)
+
+            const numberMessage = `
+📢 *NÚMERO CANTADO: ${number}*
+
+🎯 Números cantados hasta ahora: ${totalCalled}/75
+
+¡Revisa tus cartones! 🎮
+            `.trim()
+
+            result = await Promise.allSettled(players.map((player) => sendMessage(player.phone, numberMessage)))
             break
 
           case "bingo-winner":
             if (!winner || !winner.name || !winner.phone || !winner.cardId) {
               return NextResponse.json({ error: "Winner details required" }, { status: 400 })
             }
+
             console.log(`🏆 Enviando notificación de ganador: ${winner.name}`)
-            result = await twilioService.notifyBingoWinner(winner.name, winner.phone, winner.cardId)
+
+            const winnerMessage = `
+🏆 *¡¡¡FELICITACIONES ${winner.name.toUpperCase()}!!!*
+
+🎉 ¡HAS GANADO EL BINGO! 🎉
+
+🎯 *Detalles del premio:*
+• Cartón ganador: ${winner.cardId}
+• ¡Eres el ganador oficial!
+
+🎊 Contacta a los organizadores para reclamar tu premio.
+
+¡INCREÍBLE! 🌟
+            `.trim()
+
+            const winnerResult = await sendMessage(winner.phone, winnerMessage)
+            result = [{ status: "fulfilled", value: winnerResult }]
             break
 
           case "game-reset":
             if (!players || !Array.isArray(players)) {
               return NextResponse.json({ error: "Players array required" }, { status: 400 })
             }
+
             console.log(`🔄 Enviando notificación de reinicio a ${players.length} jugadores`)
-            result = await twilioService.notifyGameReset(players)
+
+            const resetMessage = `
+🔄 *NUEVO JUEGO INICIANDO*
+
+🎯 Se ha reiniciado el juego de bingo. 
+
+📋 Prepárate para la próxima ronda.
+
+¡Buena suerte a todos! 🍀
+            `.trim()
+
+            result = await Promise.allSettled(players.map((player) => sendMessage(player.phone, resetMessage)))
             break
 
           default:
@@ -63,12 +146,13 @@ export async function POST(request: NextRequest) {
         }
 
         console.log("📤 Resultado de notificaciones:", result)
-      } catch (importError) {
-        console.error("💥 Error importando servicio Twilio:", importError)
+      } catch (error) {
+        console.error("💥 Error en notificaciones de juego:", error)
         return NextResponse.json(
           {
-            error: "Failed to import Twilio service",
-            details: importError instanceof Error ? importError.message : "Unknown import error",
+            error: "Failed to send game notifications",
+            details: error.message,
+            code: error.code,
           },
           { status: 500 },
         )

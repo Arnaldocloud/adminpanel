@@ -16,10 +16,13 @@ export async function POST(request: NextRequest) {
     // Verificar variables de entorno
     const accountSid = process.env.TWILIO_ACCOUNT_SID
     const authToken = process.env.TWILIO_AUTH_TOKEN
+    const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886"
     const isMockMode = !accountSid || !authToken
 
     console.log("🔧 Modo:", isMockMode ? "SIMULACIÓN" : "PRODUCCIÓN")
     console.log("🌍 Entorno:", process.env.NODE_ENV)
+    console.log("📱 WhatsApp Number:", whatsappNumber)
+    console.log("📞 Teléfono del jugador:", playerPhone)
 
     let result
 
@@ -28,33 +31,80 @@ export async function POST(request: NextRequest) {
       result = { success: true, messageId: "mock-id", mock: true }
     } else {
       try {
-        const { notifyPaymentVerified } = await import("@/lib/twilio")
-        result = await notifyPaymentVerified(playerName, playerPhone, orderId, cartCount)
-        console.log("📤 Resultado de notificación:", result)
-      } catch (importError) {
-        console.error("💥 Error importando servicio Twilio:", importError)
-        return NextResponse.json(
-          {
-            error: "Failed to import Twilio service",
-            details: importError instanceof Error ? importError.message : "Unknown import error",
-          },
-          { status: 500 },
-        )
+        // Importar Twilio directamente para evitar problemas de importación dinámica
+        const twilio = require("twilio")
+        const client = twilio(accountSid, authToken)
+
+        // Formatear número de teléfono
+        let formattedPhone = playerPhone.replace(/[\s\-()]/g, "")
+        if (formattedPhone.startsWith("0")) {
+          formattedPhone = "+58" + formattedPhone.substring(1)
+        }
+        if (!formattedPhone.startsWith("+")) {
+          formattedPhone = "+58" + formattedPhone
+        }
+
+        console.log("📞 Número formateado:", formattedPhone)
+
+        // Crear mensaje directamente
+        const message = `
+🎉 *¡Excelente ${playerName}!*
+
+✅ Tu pago ha sido verificado exitosamente.
+
+🎯 *Ya puedes participar en el bingo:*
+• Orden: #${orderId.slice(-8)}
+• Cartones: ${cartCount}
+• Estado: ✅ VERIFICADO
+
+🎮 Mantente atento a los números que se van cantando. ¡Buena suerte!
+
+¡Que ganes! 🏆
+        `.trim()
+
+        console.log("📤 Enviando mensaje WhatsApp...")
+        console.log("📤 De:", whatsappNumber)
+        console.log("📤 Para:", `whatsapp:${formattedPhone}`)
+
+        const twilioResult = await client.messages.create({
+          from: whatsappNumber,
+          to: `whatsapp:${formattedPhone}`,
+          body: message,
+        })
+
+        console.log("✅ Mensaje enviado:", twilioResult.sid)
+
+        result = {
+          success: true,
+          messageId: twilioResult.sid,
+          status: twilioResult.status,
+        }
+      } catch (twilioError) {
+        console.error("💥 Error enviando WhatsApp:", twilioError)
+
+        // Proporcionar información detallada del error
+        result = {
+          success: false,
+          error: twilioError.message,
+          code: twilioError.code,
+          moreInfo: twilioError.moreInfo,
+          status: twilioError.status,
+        }
       }
     }
 
     if (result.success) {
-      console.log("✅ Notificación enviada exitosamente")
+      console.log("✅ Notificación procesada exitosamente")
       return NextResponse.json({
         success: true,
         messageId: result.messageId,
-        mock: isMockMode,
-        message: "Payment verified notification sent successfully",
+        mock: result.mock || isMockMode,
+        message: "WhatsApp notification processed successfully",
       })
     } else {
-      console.error("❌ Error enviando notificación:", result.error)
+      console.error("❌ Error procesando notificación:", result.error)
       return NextResponse.json(
-        { error: "Failed to send WhatsApp notification", details: result.error },
+        { error: "Failed to send WhatsApp notification", details: result.error, code: result.code },
         { status: 500 },
       )
     }
