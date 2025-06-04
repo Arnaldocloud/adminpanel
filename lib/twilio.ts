@@ -1,4 +1,6 @@
-// Configuración de Twilio con manejo robusto de errores
+import twilio from "twilio"
+
+// Configuración de Twilio
 const accountSid = process.env.TWILIO_ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
 const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886"
@@ -8,36 +10,18 @@ console.log("- Account SID:", accountSid ? `${accountSid.substring(0, 10)}...` :
 console.log("- Auth Token:", authToken ? "✅ DEFINIDA" : "❌ NO DEFINIDA")
 console.log("- WhatsApp Number:", whatsappNumber)
 
-// Verificar si estamos en modo mock
-const isMockMode = !accountSid || !authToken
-
-// Variable para el cliente de Twilio
+// Inicializar cliente de Twilio
 let client: any = null
 
-// Función para inicializar Twilio de manera lazy
-async function initializeTwilioClient() {
-  if (client || isMockMode) {
-    return client
+try {
+  if (accountSid && authToken) {
+    client = twilio(accountSid, authToken)
+    console.log("✅ Cliente de Twilio inicializado correctamente")
+  } else {
+    console.error("❌ No se puede inicializar Twilio: faltan credenciales")
   }
-
-  try {
-    // Importación dinámica de Twilio
-    const twilioModule = await import("twilio")
-    const twilioConstructor = twilioModule.default || twilioModule
-
-    if (typeof twilioConstructor === "function") {
-      client = twilioConstructor(accountSid, authToken)
-      console.log("✅ Cliente de Twilio inicializado correctamente")
-    } else {
-      throw new Error("Twilio constructor not found")
-    }
-
-    return client
-  } catch (error) {
-    console.error("💥 Error al inicializar cliente de Twilio:", error)
-    console.log("🔄 Continuando en modo simulación")
-    return null
-  }
+} catch (error) {
+  console.error("💥 Error al inicializar cliente de Twilio:", error)
 }
 
 export interface WhatsAppMessage {
@@ -51,29 +35,11 @@ export async function sendWhatsAppMessage({ to, message, mediaUrl }: WhatsAppMes
   try {
     console.log("📱 Preparando envío de WhatsApp...")
 
-    // Intentar inicializar cliente si no está en modo mock
-    if (!isMockMode) {
-      client = await initializeTwilioClient()
-    }
-
-    // Si no tenemos cliente o estamos en modo mock
-    if (!client || isMockMode) {
-      console.log("🔸 [MOCK] Enviando mensaje WhatsApp simulado")
-      console.log("📱 Destinatario:", to)
-      console.log("💬 Mensaje:", message.substring(0, 50) + (message.length > 50 ? "..." : ""))
-      if (mediaUrl) console.log("🖼️ Media URL:", mediaUrl)
-
-      // Simular un retraso de red
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Generar un ID de mensaje simulado
-      const mockMessageId = "SM" + Math.random().toString(36).substring(2, 15)
-      console.log("✅ [MOCK] Mensaje enviado con éxito:", mockMessageId)
-
+    if (!client) {
+      console.error("❌ Cliente de Twilio no inicializado")
       return {
-        success: true,
-        messageId: mockMessageId,
-        mock: true,
+        success: false,
+        error: "Twilio client not initialized. Check your credentials.",
       }
     }
 
@@ -110,6 +76,7 @@ export async function sendWhatsAppMessage({ to, message, mediaUrl }: WhatsAppMes
     console.error("💥 Error sending WhatsApp message:", error)
     console.error("Error code:", error.code)
     console.error("Error message:", error.message)
+    console.error("Error details:", error.moreInfo)
 
     // Proporcionar errores más específicos
     let userFriendlyError = error.message
@@ -128,7 +95,7 @@ export async function sendWhatsAppMessage({ to, message, mediaUrl }: WhatsAppMes
       success: false,
       error: userFriendlyError,
       code: error.code,
-      mock: isMockMode,
+      details: error.moreInfo,
     }
   }
 }
@@ -254,7 +221,7 @@ Estamos aquí para ayudarte 🤝
   `.trim(),
 }
 
-// Funciones de notificación que manejan tanto modo mock como producción
+// Función para enviar notificación de orden recibida
 export async function notifyOrderReceived(
   playerName: string,
   playerPhone: string,
@@ -269,6 +236,7 @@ export async function notifyOrderReceived(
   })
 }
 
+// Función para enviar notificación de pago verificado
 export async function notifyPaymentVerified(
   playerName: string,
   playerPhone: string,
@@ -282,6 +250,7 @@ export async function notifyPaymentVerified(
   })
 }
 
+// Función para enviar notificación de pago rechazado
 export async function notifyPaymentRejected(playerName: string, playerPhone: string, orderId: string, reason?: string) {
   const message = messageTemplates.paymentRejected(playerName, orderId, reason)
   return await sendWhatsAppMessage({
@@ -290,6 +259,7 @@ export async function notifyPaymentRejected(playerName: string, playerPhone: str
   })
 }
 
+// Función para notificar inicio de juego
 export async function notifyGameStarted(players: Array<{ name: string; phone: string }>) {
   const promises = players.map((player) =>
     sendWhatsAppMessage({
@@ -301,9 +271,10 @@ export async function notifyGameStarted(players: Array<{ name: string; phone: st
   return await Promise.allSettled(promises)
 }
 
+// Función para notificar número cantado (solo a jugadores activos)
 export async function notifyNumberCalled(players: Array<{ phone: string }>, number: number, totalCalled: number) {
   // Enviar cada 3 números para no saturar pero mantener informados
-  if (totalCalled % 3 !== 0 && totalCalled !== 1) return []
+  if (totalCalled % 3 !== 0 && totalCalled !== 1) return
 
   const message = messageTemplates.numberCalled(number, totalCalled)
   const promises = players.map((player) =>
@@ -316,6 +287,7 @@ export async function notifyNumberCalled(players: Array<{ phone: string }>, numb
   return await Promise.allSettled(promises)
 }
 
+// Función para notificar ganador
 export async function notifyBingoWinner(playerName: string, playerPhone: string, cardId: string) {
   const message = messageTemplates.bingoWinner(playerName, cardId)
   return await sendWhatsAppMessage({
@@ -324,6 +296,7 @@ export async function notifyBingoWinner(playerName: string, playerPhone: string,
   })
 }
 
+// Función para notificar reinicio de juego
 export async function notifyGameReset(players: Array<{ phone: string }>) {
   const message = messageTemplates.gameReset()
   const promises = players.map((player) =>
@@ -335,10 +308,3 @@ export async function notifyGameReset(players: Array<{ phone: string }>) {
 
   return await Promise.allSettled(promises)
 }
-
-// Exportar información del estado
-export const getTwilioStatus = () => ({
-  isMockMode,
-  hasCredentials: !!accountSid && !!authToken,
-  clientInitialized: !!client,
-})

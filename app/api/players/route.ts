@@ -1,40 +1,43 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql, initializeTables } from "@/lib/database"
+import db from "@/lib/database"
 
 export async function POST(request: NextRequest) {
   try {
-    await initializeTables()
-
     const { gameId, name, email, cards } = await request.json()
 
     // Insertar jugador
-    const playerResult = await sql`
+    const playerResult = db
+      .prepare(`
       INSERT INTO players (game_id, name, email, cards_count) 
-      VALUES (${gameId}, ${name}, ${email}, ${cards.length})
-      RETURNING *
-    `
+      VALUES (?, ?, ?, ?)
+    `)
+      .run(gameId, name, email, cards.length)
 
-    const playerId = playerResult.rows[0].id
+    const playerId = playerResult.lastInsertRowid
 
     // Insertar cartones
+    const insertCard = db.prepare(`
+      INSERT INTO bingo_cards (id, player_id, numbers) 
+      VALUES (?, ?, ?)
+    `)
+
     for (const card of cards) {
-      await sql`
-        INSERT INTO bingo_cards (id, player_id, numbers) 
-        VALUES (${card.id}, ${playerId}, ${JSON.stringify(card.numbers)})
-      `
+      insertCard.run(card.id, playerId, JSON.stringify(card.numbers))
     }
 
-    const player = await sql`
+    const player = db
+      .prepare(`
       SELECT p.*, 
-             STRING_AGG(bc.id, ',') as card_ids,
-             STRING_AGG(bc.numbers, ',') as card_numbers
+             GROUP_CONCAT(bc.id) as card_ids,
+             GROUP_CONCAT(bc.numbers) as card_numbers
       FROM players p
       LEFT JOIN bingo_cards bc ON p.id = bc.player_id
-      WHERE p.id = ${playerId}
+      WHERE p.id = ?
       GROUP BY p.id
-    `
+    `)
+      .get(playerId)
 
-    return NextResponse.json(player.rows[0])
+    return NextResponse.json(player)
   } catch (error) {
     console.error("Error creating player:", error)
     return NextResponse.json({ error: "Failed to create player" }, { status: 500 })
@@ -43,8 +46,6 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    await initializeTables()
-
     const { searchParams } = new URL(request.url)
     const gameId = searchParams.get("gameId")
 
@@ -52,17 +53,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Game ID required" }, { status: 400 })
     }
 
-    const players = await sql`
+    const players = db
+      .prepare(`
       SELECT p.*, 
              COUNT(bc.id) as actual_cards_count
       FROM players p
       LEFT JOIN bingo_cards bc ON p.id = bc.player_id
-      WHERE p.game_id = ${gameId}
+      WHERE p.game_id = ?
       GROUP BY p.id
       ORDER BY p.created_at DESC
-    `
+    `)
+      .all(gameId)
 
-    return NextResponse.json(players.rows)
+    return NextResponse.json(players)
   } catch (error) {
     console.error("Error fetching players:", error)
     return NextResponse.json({ error: "Failed to fetch players" }, { status: 500 })

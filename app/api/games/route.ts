@@ -1,12 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql, initializeTables } from "@/lib/database"
+import db from "@/lib/database"
 
 export async function GET() {
   try {
-    // Inicializar tablas si es necesario
-    await initializeTables()
-
-    const games = await sql`
+    const games = db
+      .prepare(`
       SELECT 
         g.*,
         COUNT(DISTINCT p.id) as players_count,
@@ -18,9 +16,10 @@ export async function GET() {
       LEFT JOIN winners w ON g.id = w.game_id
       GROUP BY g.id
       ORDER BY g.created_at DESC
-    `
+    `)
+      .all()
 
-    return NextResponse.json(games.rows)
+    return NextResponse.json(games)
   } catch (error) {
     console.error("Error fetching games:", error)
     return NextResponse.json({ error: "Failed to fetch games" }, { status: 500 })
@@ -29,17 +28,18 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await initializeTables()
-
     const { name } = await request.json()
 
-    const result = await sql`
+    const result = db
+      .prepare(`
       INSERT INTO games (name, status) 
-      VALUES (${name}, 'active')
-      RETURNING *
-    `
+      VALUES (?, 'active')
+    `)
+      .run(name)
 
-    return NextResponse.json(result.rows[0])
+    const game = db.prepare("SELECT * FROM games WHERE id = ?").get(result.lastInsertRowid)
+
+    return NextResponse.json(game)
   } catch (error) {
     console.error("Error creating game:", error)
     return NextResponse.json({ error: "Failed to create game" }, { status: 500 })

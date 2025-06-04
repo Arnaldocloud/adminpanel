@@ -1,17 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql, initializeTables } from "@/lib/database"
+import db from "@/lib/database"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await initializeTables()
-
     const gameId = params.id
 
-    await sql`
+    db.prepare(`
       UPDATE games 
       SET status = 'finished', finished_at = CURRENT_TIMESTAMP 
-      WHERE id = ${gameId}
-    `
+      WHERE id = ?
+    `).run(gameId)
 
     return NextResponse.json({ success: true })
   } catch (error) {

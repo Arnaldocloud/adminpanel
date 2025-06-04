@@ -8,25 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Settings, Send, CheckCircle, XCircle, Save } from "lucide-react"
+import { MessageCircle, Settings, Send, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 
 interface WhatsAppConfigProps {
   onConfigChange?: (config: any) => void
 }
 
-interface NotificationConfig {
-  enabled: boolean
-  orderReceived: boolean
-  paymentVerified: boolean
-  paymentRejected: boolean
-  gameStarted: boolean
-  numberCalled: boolean
-  bingoWinner: boolean
-  gameReset: boolean
-}
-
 export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) {
-  const [config, setConfig] = useState<NotificationConfig>({
+  const [config, setConfig] = useState({
     enabled: true,
     orderReceived: true,
     paymentVerified: true,
@@ -39,36 +28,27 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
 
   const [testPhone, setTestPhone] = useState("")
   const [testStatus, setTestStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
   const [isMockMode, setIsMockMode] = useState(false)
+  const [isCheckingEnv, setIsCheckingEnv] = useState(true)
 
-  // Cargar configuración guardada al inicializar
-  useEffect(() => {
-    const savedConfig = localStorage.getItem("whatsapp-notifications-config")
-    if (savedConfig) {
-      try {
-        const parsedConfig = JSON.parse(savedConfig)
-        setConfig(parsedConfig)
-        onConfigChange?.(parsedConfig)
-      } catch (error) {
-        console.error("Error loading saved config:", error)
-      }
-    }
-  }, [onConfigChange])
-
-  // Verificar modo de producción
+  // Verificar si estamos en modo simulación
   useEffect(() => {
     const checkEnvVars = async () => {
       try {
         const response = await fetch("/api/notifications/test", {
           method: "HEAD",
         })
+
         const mockMode = response.headers.get("x-mock-mode") === "true"
         setIsMockMode(mockMode)
       } catch (error) {
-        setIsMockMode(true)
+        console.error("Error checking environment:", error)
+        setIsMockMode(true) // Asumir modo simulación si hay error
+      } finally {
+        setIsCheckingEnv(false)
       }
     }
+
     checkEnvVars()
   }, [])
 
@@ -76,18 +56,6 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
     const newConfig = { ...config, [key]: value }
     setConfig(newConfig)
     onConfigChange?.(newConfig)
-  }
-
-  const saveConfiguration = () => {
-    setSaveStatus("saving")
-    try {
-      localStorage.setItem("whatsapp-notifications-config", JSON.stringify(config))
-      setSaveStatus("saved")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    } catch (error) {
-      console.error("Error saving configuration:", error)
-      setSaveStatus("idle")
-    }
   }
 
   const sendTestMessage = async () => {
@@ -112,16 +80,28 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
       })
 
       const result = await response.json()
+      console.log("📤 Respuesta del servidor:", result)
 
       if (response.ok) {
         setTestStatus("success")
         setTimeout(() => setTestStatus("idle"), 3000)
       } else {
+        console.error("❌ Error del servidor:", result)
         setTestStatus("error")
-        alert(`Error: ${result.details || result.error}`)
+
+        // Mostrar error específico al usuario
+        if (result.twilioError) {
+          alert(`Error de Twilio: ${result.details}`)
+        } else if (result.details) {
+          alert(`Error: ${result.details}`)
+        } else {
+          alert(`Error del servidor: ${result.error}`)
+        }
+
         setTimeout(() => setTestStatus("idle"), 5000)
       }
     } catch (error) {
+      console.error("💥 Error de red:", error)
       setTestStatus("error")
       alert("Error de conexión. Verifica tu conexión a internet.")
       setTimeout(() => setTestStatus("idle"), 3000)
@@ -156,7 +136,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
     {
       key: "numberCalled",
       label: "Número Cantado",
-      description: "Cada 3 números cantados",
+      description: "Cada 3 números cantados (para no saturar)",
       icon: "📢",
     },
     {
@@ -181,9 +161,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
             Configuración de WhatsApp
-            <Badge className={`ml-2 ${isMockMode ? "bg-yellow-500" : "bg-blue-500"}`}>
-              {isMockMode ? "DESARROLLO" : "PRODUCCIÓN"}
-            </Badge>
+            {isMockMode && <Badge className="ml-2 bg-yellow-500">MODO SIMULACIÓN</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -202,25 +180,28 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Button
-              onClick={saveConfiguration}
-              disabled={saveStatus === "saving"}
-              className={`${
-                saveStatus === "saved" ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-              } text-white font-medium rounded-lg transition-all duration-200`}
-            >
-              {saveStatus === "saving" && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              )}
-              {saveStatus === "saved" && <CheckCircle className="w-4 h-4 mr-2" />}
-              {saveStatus === "idle" && <Save className="w-4 h-4 mr-2" />}
-              {saveStatus === "saving" ? "Guardando..." : saveStatus === "saved" ? "Guardado" : "Guardar Configuración"}
-            </Button>
-          </div>
+          {isMockMode && (
+            <Alert className="border-yellow-300 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-yellow-800">
+                ⚠️ <strong>Modo Simulación Activo:</strong> Las notificaciones se simularán localmente pero no se
+                enviarán mensajes reales. Este modo se activa cuando las variables de entorno de Twilio no están
+                configuradas en desarrollo.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!config.enabled && (
+            <Alert className="border-yellow-300 bg-yellow-50 mt-4">
+              <AlertDescription className="text-yellow-800">
+                ⚠️ Las notificaciones de WhatsApp están desactivadas. Los usuarios no recibirán mensajes automáticos.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
+      {/* Resto del componente igual... */}
       {/* Configuración de Tipos de Notificación */}
       <Card className="border-0 shadow-xl">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
@@ -266,6 +247,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
           <CardTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
             Prueba de Mensaje
+            {isMockMode && <Badge className="ml-2 bg-yellow-500">SIMULADO</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -281,6 +263,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
                 placeholder="0414-1234567 o +584141234567"
                 className="border-2 border-purple-200 focus:border-purple-500 rounded-lg"
               />
+              <p className="text-sm text-gray-500 mt-1">Ingresa tu número para probar las notificaciones</p>
             </div>
 
             <Button
@@ -303,7 +286,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               {testStatus === "success" && (
                 <>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  ¡Mensaje Enviado!
+                  {isMockMode ? "¡Simulación Exitosa!" : "¡Mensaje Enviado!"}
                 </>
               )}
               {testStatus === "error" && (
@@ -315,7 +298,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               {testStatus === "idle" && (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Enviar Mensaje de Prueba
+                  {isMockMode ? "Simular Mensaje de Prueba" : "Enviar Mensaje de Prueba"}
                 </>
               )}
             </Button>
@@ -324,7 +307,9 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               <Alert className="border-green-300 bg-green-50">
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription className="text-green-800">
-                  ✅ Mensaje enviado exitosamente. Revisa tu WhatsApp.
+                  {isMockMode
+                    ? "✅ Simulación exitosa. En producción, este mensaje se enviaría por WhatsApp."
+                    : "✅ Mensaje enviado exitosamente. Revisa tu WhatsApp."}
                 </AlertDescription>
               </Alert>
             )}
@@ -333,7 +318,40 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               <Alert className="border-red-300 bg-red-50">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription className="text-red-800">
-                  ❌ Error al enviar el mensaje. Verifica la configuración.
+                  ❌ Error al enviar el mensaje. Verifica la configuración de Twilio.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Información de Configuración */}
+      <Card className="border-0 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-gray-600 to-slate-600 text-white rounded-t-lg">
+          <CardTitle>📋 Configuración Requerida</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-3">
+            <h4 className="font-bold text-gray-800">Variables de Entorno Necesarias:</h4>
+            <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm">
+              <p>TWILIO_ACCOUNT_SID=tu_account_sid</p>
+              <p>TWILIO_AUTH_TOKEN=tu_auth_token</p>
+              <p>TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886</p>
+            </div>
+            <Alert className="border-blue-300 bg-blue-50">
+              <AlertDescription className="text-blue-800">
+                💡 <strong>Nota:</strong> Necesitas una cuenta de Twilio y configurar WhatsApp Business API para usar
+                esta funcionalidad.
+              </AlertDescription>
+            </Alert>
+
+            {isMockMode && (
+              <Alert className="border-yellow-300 bg-yellow-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-yellow-800">
+                  ⚠️ <strong>Modo Desarrollo:</strong> Para probar con mensajes reales en desarrollo, crea un archivo{" "}
+                  <code>.env.local</code> en la raíz del proyecto con las variables de entorno de Twilio.
                 </AlertDescription>
               </Alert>
             )}

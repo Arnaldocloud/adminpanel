@@ -1,62 +1,38 @@
 import { type NextRequest, NextResponse } from "next/server"
+// Importar la versión real o la simulada según el entorno
+import * as twilioService from "@/lib/twilio"
+import * as mockService from "@/lib/twilio-mock"
+
+// Determinar qué servicio usar
+const isMockMode = !process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN
+const service = isMockMode ? mockService : twilioService
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("❌ Procesando notificación de pago rechazado...")
-
     const { playerName, playerPhone, orderId, reason } = await request.json()
 
     if (!playerName || !playerPhone || !orderId) {
-      console.error("❌ Faltan campos requeridos")
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    console.log("📊 Datos recibidos:", { playerName, playerPhone, orderId, reason })
-
-    let result
-
-    try {
-      const { notifyPaymentRejected } = await import("@/lib/twilio")
-      result = await notifyPaymentRejected(playerName, playerPhone, orderId, reason)
-      console.log("📤 Resultado de notificación:", result)
-    } catch (importError: any) {
-      console.error("💥 Error usando servicio Twilio:", importError)
-
-      // Fallback a simulación
-      result = {
-        success: true,
-        messageId: "mock-id",
-        mock: true,
-        fallback: true,
-        error: importError.message,
-      }
-    }
+    console.log("🔧 Modo:", isMockMode ? "SIMULACIÓN" : "PRODUCCIÓN")
+    const result = await service.notifyPaymentRejected(playerName, playerPhone, orderId, reason)
 
     if (result.success) {
-      console.log("✅ Notificación procesada exitosamente")
       return NextResponse.json({
         success: true,
         messageId: result.messageId,
-        mock: result.mock || false,
-        fallback: result.fallback || false,
-        message: "Payment rejected notification processed successfully",
+        mock: isMockMode,
+        message: "Payment rejected notification sent successfully",
       })
     } else {
-      console.error("❌ Error procesando notificación:", result.error)
       return NextResponse.json(
         { error: "Failed to send WhatsApp notification", details: result.error },
         { status: 500 },
       )
     }
-  } catch (error: any) {
-    console.error("💥 Error en payment-rejected notification:", error)
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-        details: error.message,
-        environment: process.env.NODE_ENV,
-      },
-      { status: 500 },
-    )
+  } catch (error) {
+    console.error("Error in payment-rejected notification:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
