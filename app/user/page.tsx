@@ -176,10 +176,10 @@ export default function UserPanel() {
     existingOrders.push(newOrder)
     localStorage.setItem("bingoOrders", JSON.stringify(existingOrders))
 
-    // Enviar notificación de WhatsApp
+    // Enviar notificación de WhatsApp - MEJORADO
     try {
       console.log("📱 Enviando notificación de orden recibida...")
-      console.log("📊 Datos:", {
+      console.log("📊 Datos a enviar:", {
         playerName: playerInfo.name,
         playerPhone: playerInfo.phone,
         orderId: newOrder.id,
@@ -187,7 +187,7 @@ export default function UserPanel() {
         cartCount: cartItems.length,
       })
 
-      const response = await fetch("/api/notifications/order-received", {
+      const notificationResponse = await fetch("/api/notifications/order-received", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -201,14 +201,23 @@ export default function UserPanel() {
         }),
       })
 
-      const result = await response.json()
-      console.log("📱 Resultado de notificación:", result)
+      console.log("📱 Status de respuesta:", notificationResponse.status)
 
-      if (!response.ok) {
-        console.error("❌ Error en la respuesta:", result)
+      const notificationResult = await notificationResponse.json()
+      console.log("📱 Resultado completo:", notificationResult)
+
+      if (notificationResponse.ok && notificationResult.success) {
+        console.log("✅ Notificación enviada exitosamente:", notificationResult.messageId)
+      } else {
+        console.error("❌ Error en notificación:", notificationResult)
+        // Mostrar el error al usuario
+        alert(
+          `Orden enviada correctamente, pero hubo un problema con la notificación WhatsApp: ${notificationResult.error || "Error desconocido"}`,
+        )
       }
     } catch (error) {
-      console.error("💥 Error enviando notificación de WhatsApp:", error)
+      console.error("💥 Error crítico enviando notificación:", error)
+      alert(`Orden enviada correctamente, pero no se pudo enviar la notificación WhatsApp. Error: ${error.message}`)
     }
 
     setOrders((prev) => [newOrder, ...prev])
