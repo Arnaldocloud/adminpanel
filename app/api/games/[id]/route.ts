@@ -1,55 +1,53 @@
 import { type NextRequest, NextResponse } from "next/server"
-import db from "@/lib/database"
+import { sql, initializeTables } from "@/lib/database"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await initializeTables()
+
     const gameId = params.id
 
     // Obtener información del juego
-    const game = db.prepare("SELECT * FROM games WHERE id = ?").get(gameId)
+    const gameResult = await sql`SELECT * FROM games WHERE id = ${gameId}`
 
-    if (!game) {
+    if (gameResult.rows.length === 0) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 })
     }
 
+    const game = gameResult.rows[0]
+
     // Obtener jugadores y sus cartones
-    const players = db
-      .prepare(`
+    const players = await sql`
       SELECT p.*, 
-             GROUP_CONCAT(bc.id) as card_ids,
-             GROUP_CONCAT(bc.numbers) as card_numbers
+             STRING_AGG(bc.id, ',') as card_ids,
+             STRING_AGG(bc.numbers, ',') as card_numbers
       FROM players p
       LEFT JOIN bingo_cards bc ON p.id = bc.player_id
-      WHERE p.game_id = ?
+      WHERE p.game_id = ${gameId}
       GROUP BY p.id
-    `)
-      .all(gameId)
+    `
 
     // Obtener números cantados
-    const calledNumbers = db
-      .prepare(`
+    const calledNumbers = await sql`
       SELECT number FROM called_numbers 
-      WHERE game_id = ? 
+      WHERE game_id = ${gameId}
       ORDER BY called_at ASC
-    `)
-      .all(gameId)
+    `
 
     // Obtener ganadores
-    const winners = db
-      .prepare(`
+    const winners = await sql`
       SELECT w.*, p.name as player_name, p.email as player_email,
              bc.numbers as card_numbers
       FROM winners w
       JOIN players p ON w.player_id = p.id
       JOIN bingo_cards bc ON w.card_id = bc.id
-      WHERE w.game_id = ?
+      WHERE w.game_id = ${gameId}
       ORDER BY w.created_at ASC
-    `)
-      .all(gameId)
+    `
 
     const gameDetail = {
       game,
-      players: players.map((p) => ({
+      players: players.rows.map((p) => ({
         ...p,
         cards: p.card_ids
           ? p.card_ids.split(",").map((id, index) => ({
@@ -58,8 +56,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             }))
           : [],
       })),
-      calledNumbers: calledNumbers.map((n) => n.number),
-      winners: winners.map((w) => ({
+      calledNumbers: calledNumbers.rows.map((n) => n.number),
+      winners: winners.rows.map((w) => ({
         ...w,
         winning_numbers: JSON.parse(w.winning_numbers),
         card_numbers: JSON.parse(w.card_numbers),
