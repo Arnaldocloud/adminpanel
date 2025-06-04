@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Settings, Send, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
+import { MessageCircle, Settings, Send, CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react"
 
 interface WhatsAppConfigProps {
   onConfigChange?: (config: any) => void
@@ -29,21 +29,30 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
   const [testPhone, setTestPhone] = useState("")
   const [testStatus, setTestStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
   const [isMockMode, setIsMockMode] = useState(false)
+  const [environmentInfo, setEnvironmentInfo] = useState<any>(null)
   const [isCheckingEnv, setIsCheckingEnv] = useState(true)
 
   // Verificar si estamos en modo simulación
   useEffect(() => {
     const checkEnvVars = async () => {
       try {
+        console.log("🔍 Verificando configuración de entorno...")
+
         const response = await fetch("/api/notifications/test", {
           method: "HEAD",
         })
 
         const mockMode = response.headers.get("x-mock-mode") === "true"
+        const environment = response.headers.get("x-environment") || "unknown"
+
+        console.log("📊 Información de entorno:", { mockMode, environment })
+
         setIsMockMode(mockMode)
+        setEnvironmentInfo({ environment, mockMode })
       } catch (error) {
         console.error("Error checking environment:", error)
         setIsMockMode(true) // Asumir modo simulación si hay error
+        setEnvironmentInfo({ environment: "unknown", mockMode: true, error: true })
       } finally {
         setIsCheckingEnv(false)
       }
@@ -67,6 +76,8 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
     setTestStatus("sending")
 
     try {
+      console.log("📤 Enviando mensaje de prueba...")
+
       const response = await fetch("/api/notifications/test", {
         method: "POST",
         headers: {
@@ -84,20 +95,29 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
 
       if (response.ok) {
         setTestStatus("success")
+        setEnvironmentInfo((prev) => ({ ...prev, ...result }))
         setTimeout(() => setTestStatus("idle"), 3000)
       } else {
         console.error("❌ Error del servidor:", result)
         setTestStatus("error")
 
         // Mostrar error específico al usuario
+        let errorMessage = "Error desconocido"
+
         if (result.twilioError) {
-          alert(`Error de Twilio: ${result.details}`)
+          errorMessage = `Error de Twilio: ${result.details}`
         } else if (result.details) {
-          alert(`Error: ${result.details}`)
+          errorMessage = `Error: ${result.details}`
         } else {
-          alert(`Error del servidor: ${result.error}`)
+          errorMessage = `Error del servidor: ${result.error}`
         }
 
+        // Agregar información de entorno
+        if (result.environment) {
+          errorMessage += `\n\nEntorno: ${result.environment}`
+        }
+
+        alert(errorMessage)
         setTimeout(() => setTestStatus("idle"), 5000)
       }
     } catch (error) {
@@ -162,6 +182,9 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
             <MessageCircle className="h-5 w-5" />
             Configuración de WhatsApp
             {isMockMode && <Badge className="ml-2 bg-yellow-500">MODO SIMULACIÓN</Badge>}
+            {environmentInfo?.environment && (
+              <Badge className="ml-2 bg-blue-500">{environmentInfo.environment.toUpperCase()}</Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -180,13 +203,35 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
             </div>
           </div>
 
+          {/* Información de entorno */}
+          {environmentInfo && (
+            <Alert className="border-blue-300 bg-blue-50 mb-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-blue-800">
+                <strong>Estado del sistema:</strong>
+                <br />• Entorno: {environmentInfo.environment || "desconocido"}
+                <br />• Modo: {isMockMode ? "Simulación" : "Producción"}
+                <br />• Twilio configurado: {environmentInfo.twilioConfigured ? "Sí" : "No"}
+                {environmentInfo.error && (
+                  <>
+                    <br />• ⚠️ Error detectado en la verificación
+                  </>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {isMockMode && (
             <Alert className="border-yellow-300 bg-yellow-50">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-yellow-800">
                 ⚠️ <strong>Modo Simulación Activo:</strong> Las notificaciones se simularán localmente pero no se
-                enviarán mensajes reales. Este modo se activa cuando las variables de entorno de Twilio no están
-                configuradas en desarrollo.
+                enviarán mensajes reales.
+                {environmentInfo?.environment === "production" && (
+                  <span className="font-bold text-red-600">
+                    <br />🚨 ATENCIÓN: Estás en producción pero las variables de Twilio no están configuradas.
+                  </span>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -318,7 +363,7 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
               <Alert className="border-red-300 bg-red-50">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription className="text-red-800">
-                  ❌ Error al enviar el mensaje. Verifica la configuración de Twilio.
+                  ❌ Error al enviar el mensaje. Verifica la configuración de Twilio y revisa los logs del servidor.
                 </AlertDescription>
               </Alert>
             )}
@@ -333,20 +378,38 @@ export default function WhatsAppConfig({ onConfigChange }: WhatsAppConfigProps) 
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-3">
-            <h4 className="font-bold text-gray-800">Variables de Entorno Necesarias:</h4>
+            <h4 className="font-bold text-gray-800">Variables de Entorno Necesarias en Vercel:</h4>
             <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm">
               <p>TWILIO_ACCOUNT_SID=tu_account_sid</p>
               <p>TWILIO_AUTH_TOKEN=tu_auth_token</p>
               <p>TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886</p>
             </div>
+
             <Alert className="border-blue-300 bg-blue-50">
               <AlertDescription className="text-blue-800">
-                💡 <strong>Nota:</strong> Necesitas una cuenta de Twilio y configurar WhatsApp Business API para usar
-                esta funcionalidad.
+                💡 <strong>Para configurar en Vercel:</strong>
+                <br />
+                1. Ve a tu proyecto en Vercel Dashboard
+                <br />
+                2. Settings → Environment Variables
+                <br />
+                3. Agrega las 3 variables de Twilio
+                <br />
+                4. Redeploy tu aplicación
               </AlertDescription>
             </Alert>
 
-            {isMockMode && (
+            {environmentInfo?.environment === "production" && isMockMode && (
+              <Alert className="border-red-300 bg-red-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-red-800">
+                  🚨 <strong>Problema en Producción:</strong> Las variables de entorno de Twilio no están configuradas
+                  en Vercel. Las notificaciones no funcionarán hasta que las configures.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isMockMode && environmentInfo?.environment !== "production" && (
               <Alert className="border-yellow-300 bg-yellow-50">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-yellow-800">
