@@ -11,7 +11,8 @@ export interface Player {
   id: number
   game_id: number
   name: string
-  email: string
+  phone: string
+  cedula: string
   cards_count: number
   created_at: string
 }
@@ -39,7 +40,8 @@ export interface Winner {
   winning_numbers: number[]
   created_at: string
   player_name?: string
-  player_email?: string
+  player_phone?: string
+  player_cedula?: string
 }
 
 export interface GameHistory {

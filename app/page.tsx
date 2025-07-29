@@ -45,7 +45,8 @@ interface BingoCard {
 interface Player {
   id: string
   name: string
-  email: string
+  phone: string
+  cedula: string
   cardsCount: number
   cards: BingoCard[]
 }
@@ -80,6 +81,7 @@ interface PurchaseOrder {
   playerName: string
   playerEmail: string
   playerPhone: string
+  playerCedula: string
   cartItems: CartItem[]
   totalAmount: number
   status: "pending" | "paid" | "verified" | "rejected"
@@ -112,7 +114,8 @@ export default function BingoAdminPanel() {
 
   // Estados para formularios existentes
   const [newPlayerName, setNewPlayerName] = useState("")
-  const [newPlayerEmail, setNewPlayerEmail] = useState("")
+  const [newPlayerPhone, setNewPlayerPhone] = useState("")
+  const [newPlayerCedula, setNewPlayerCedula] = useState("")
   const [newPlayerCards, setNewPlayerCards] = useState("")
   const [csvData, setCsvData] = useState("")
 
@@ -129,7 +132,7 @@ export default function BingoAdminPanel() {
   }
 
   const addPlayer = () => {
-    if (!newPlayerName || !newPlayerEmail) return
+    if (!newPlayerName || !newPlayerPhone || !newPlayerCedula) return
 
     const cardCount = Number.parseInt(newPlayerCards) || 1
     const cards: BingoCard[] = []
@@ -138,21 +141,23 @@ export default function BingoAdminPanel() {
       cards.push({
         id: `${Date.now()}-${i}`,
         numbers: generateRandomCard(),
-        buyerId: newPlayerEmail,
+        buyerId: newPlayerCedula,
       })
     }
 
     const newPlayer: Player = {
-      id: newPlayerEmail,
+      id: newPlayerCedula,
       name: newPlayerName,
-      email: newPlayerEmail,
+      phone: newPlayerPhone,
+      cedula: newPlayerCedula,
       cardsCount: cardCount,
       cards: cards,
     }
 
     setPlayers((prev) => [...prev, newPlayer])
     setNewPlayerName("")
-    setNewPlayerEmail("")
+    setNewPlayerPhone("")
+    setNewPlayerCedula("")
     setNewPlayerCards("")
     addToHistory("Jugador agregado", newPlayerName)
   }
@@ -165,8 +170,8 @@ export default function BingoAdminPanel() {
 
     lines.forEach((line) => {
       const parts = line.split(",").map((part) => part.trim())
-      if (parts.length >= 3) {
-        const [name, email, ...cardNumbers] = parts
+      if (parts.length >= 4) {
+        const [name, phone, cedula, ...cardNumbers] = parts
         const cards: BingoCard[] = []
 
         for (let i = 0; i < cardNumbers.length; i += 24) {
@@ -179,16 +184,17 @@ export default function BingoAdminPanel() {
             cards.push({
               id: `${Date.now()}-${i / 24}`,
               numbers: cardNums,
-              buyerId: email,
+              buyerId: cedula,
             })
           }
         }
 
         if (cards.length > 0) {
           newPlayers.push({
-            id: email,
+            id: cedula,
             name: name,
-            email: email,
+            phone: phone,
+            cedula: cedula,
             cardsCount: cards.length,
             cards: cards,
           })
@@ -221,9 +227,9 @@ export default function BingoAdminPanel() {
         const playersForNotification = players
           .map((player) => {
             // Buscar el teléfono en las órdenes verificadas
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+            const order = purchaseOrders.find((o) => o.playerCedula === player.cedula && o.status === "verified")
             return {
-              phone: order?.playerPhone || "",
+              phone: order?.playerPhone || player.phone,
               name: player.name,
             }
           })
@@ -242,7 +248,6 @@ export default function BingoAdminPanel() {
               totalCalled: calledNumbers.length + 1,
             }),
           })
-          console.log(`📱 Notificación de número ${newNumber} enviada a ${playersForNotification.length} jugadores`)
         }
       } catch (error) {
         console.error("Error sending number called notification:", error)
@@ -278,24 +283,20 @@ export default function BingoAdminPanel() {
     if (newWinners.length > 0) {
       newWinners.forEach(async (winner) => {
         try {
-          // Solo enviar si el email parece ser un número de teléfono
-          if (winner.player.email && !winner.player.email.includes("@")) {
-            await fetch("/api/notifications/game-events", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
+          await fetch("/api/notifications/game-events", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "bingo-winner",
+              winner: {
+                name: winner.player.name,
+                phone: winner.player.phone,
+                cardId: winner.card.id,
               },
-              body: JSON.stringify({
-                type: "bingo-winner",
-                winner: {
-                  name: winner.player.name,
-                  phone: winner.player.email,
-                  cardId: winner.card.id,
-                },
-              }),
-            })
-            console.log(`✅ Notificación de ganador enviada: ${winner.player.name}`)
-          }
+            }),
+          })
         } catch (error) {
           console.error("Error sending winner notification:", error)
         }
@@ -315,9 +316,9 @@ export default function BingoAdminPanel() {
       try {
         const playersForNotification = players
           .map((player) => {
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+            const order = purchaseOrders.find((o) => o.playerCedula === player.cedula && o.status === "verified")
             return {
-              phone: order?.playerPhone || "",
+              phone: order?.playerPhone || player.phone,
               name: player.name,
             }
           })
@@ -334,7 +335,6 @@ export default function BingoAdminPanel() {
               players: playersForNotification,
             }),
           })
-          console.log(`📱 Notificación de reinicio enviada a ${playersForNotification.length} jugadores`)
         }
       } catch (error) {
         console.error("Error sending game reset notification:", error)
@@ -358,9 +358,9 @@ export default function BingoAdminPanel() {
       try {
         const playersForNotification = players
           .map((player) => {
-            const order = purchaseOrders.find((o) => o.playerEmail === player.email && o.status === "verified")
+            const order = purchaseOrders.find((o) => o.playerCedula === player.cedula && o.status === "verified")
             return {
-              phone: order?.playerPhone || "",
+              phone: order?.playerPhone || player.phone,
               name: player.name,
             }
           })
@@ -377,7 +377,6 @@ export default function BingoAdminPanel() {
               players: playersForNotification,
             }),
           })
-          console.log(`📱 Notificación de inicio enviada a ${playersForNotification.length} jugadores`)
         }
       } catch (error) {
         console.error("Error sending game started notification:", error)
@@ -427,19 +426,20 @@ export default function BingoAdminPanel() {
       const order = purchaseOrders.find((o) => o.id === orderId)
       if (order) {
         const newPlayer: Player = {
-          id: order.playerEmail,
+          id: order.playerCedula,
           name: order.playerName,
-          email: order.playerEmail,
+          phone: order.playerPhone,
+          cedula: order.playerCedula,
           cardsCount: order.cartItems.length,
           cards: order.cartItems.map((item) => ({
             id: item.id,
             numbers: item.numbers,
-            buyerId: order.playerEmail,
+            buyerId: order.playerCedula,
           })),
         }
 
         setPlayers((prev) => {
-          const existingPlayerIndex = prev.findIndex((p) => p.id === order.playerEmail)
+          const existingPlayerIndex = prev.findIndex((p) => p.id === order.playerCedula)
           if (existingPlayerIndex >= 0) {
             // Actualizar jugador existente
             const updatedPlayers = [...prev]
@@ -692,6 +692,7 @@ export default function BingoAdminPanel() {
                       <TableRow className="bg-gray-50">
                         <TableHead className="font-semibold text-gray-700">Cliente</TableHead>
                         <TableHead className="font-semibold text-gray-700">Contacto</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Cédula</TableHead>
                         <TableHead className="font-semibold text-gray-700">Cartones</TableHead>
                         <TableHead className="font-semibold text-gray-700">Total</TableHead>
                         <TableHead className="font-semibold text-gray-700">Pago</TableHead>
@@ -710,8 +711,12 @@ export default function BingoAdminPanel() {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="text-sm text-gray-600">{order.playerEmail}</p>
                               <p className="text-sm text-gray-600">{order.playerPhone}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="text-sm text-gray-600 font-mono">{order.playerCedula}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -742,7 +747,11 @@ export default function BingoAdminPanel() {
                             <div className="flex gap-2">
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <Button variant="outline" size="sm" className="border-blue-300 text-blue-600">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-blue-300 text-blue-600 bg-transparent"
+                                  >
                                     <Eye className="w-4 h-4" />
                                   </Button>
                                 </DialogTrigger>
@@ -758,10 +767,10 @@ export default function BingoAdminPanel() {
                                           <strong>Nombre:</strong> {order.playerName}
                                         </p>
                                         <p>
-                                          <strong>Email:</strong> {order.playerEmail}
+                                          <strong>Teléfono:</strong> {order.playerPhone}
                                         </p>
                                         <p>
-                                          <strong>Teléfono:</strong> {order.playerPhone}
+                                          <strong>Cédula:</strong> {order.playerCedula}
                                         </p>
                                       </div>
                                       <div>
@@ -833,7 +842,7 @@ export default function BingoAdminPanel() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => updateOrderStatus(order.id, "rejected")}
-                                    className="border-red-300 text-red-600 hover:bg-red-50"
+                                    className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent"
                                   >
                                     <XCircle className="w-4 h-4" />
                                   </Button>
@@ -849,7 +858,6 @@ export default function BingoAdminPanel() {
               </Card>
             </TabsContent>
 
-            {/* Resto de pestañas existentes... */}
             {/* Gestión de Jugadores */}
             <TabsContent value="players" className="space-y-6">
               <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -860,7 +868,7 @@ export default function BingoAdminPanel() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="playerName" className="text-gray-700 font-medium">
                         Nombre del Jugador
@@ -874,14 +882,26 @@ export default function BingoAdminPanel() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="playerEmail" className="text-gray-700 font-medium">
-                        Email/ID
+                      <Label htmlFor="playerPhone" className="text-gray-700 font-medium">
+                        Teléfono
                       </Label>
                       <Input
-                        id="playerEmail"
-                        value={newPlayerEmail}
-                        onChange={(e) => setNewPlayerEmail(e.target.value)}
-                        placeholder="email@ejemplo.com"
+                        id="playerPhone"
+                        value={newPlayerPhone}
+                        onChange={(e) => setNewPlayerPhone(e.target.value)}
+                        placeholder="0414-1234567"
+                        className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="playerCedula" className="text-gray-700 font-medium">
+                        Cédula de Identidad
+                      </Label>
+                      <Input
+                        id="playerCedula"
+                        value={newPlayerCedula}
+                        onChange={(e) => setNewPlayerCedula(e.target.value)}
+                        placeholder="V-12345678"
                         className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
                       />
                     </div>
@@ -920,7 +940,7 @@ export default function BingoAdminPanel() {
                       id="csvData"
                       value={csvData}
                       onChange={(e) => setCsvData(e.target.value)}
-                      placeholder="Formato: Nombre, Email, Num1, Num2, ..., Num24"
+                      placeholder="Formato: Nombre, Teléfono, Cédula, Num1, Num2, ..., Num24"
                       rows={4}
                       className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
                     />
@@ -928,14 +948,14 @@ export default function BingoAdminPanel() {
                       <Button
                         onClick={processCsvData}
                         variant="outline"
-                        className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-medium rounded-lg"
+                        className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-medium rounded-lg bg-transparent"
                       >
                         Procesar CSV
                       </Button>
                       <Button
                         onClick={clearAll}
                         variant="outline"
-                        className="border-2 border-red-500 text-red-600 hover:bg-red-50 font-medium rounded-lg"
+                        className="border-2 border-red-500 text-red-600 hover:bg-red-50 font-medium rounded-lg bg-transparent"
                       >
                         Limpiar Todo
                       </Button>
@@ -956,7 +976,8 @@ export default function BingoAdminPanel() {
                     <TableHeader>
                       <TableRow className="bg-gray-50">
                         <TableHead className="font-semibold text-gray-700">Nombre</TableHead>
-                        <TableHead className="font-semibold text-gray-700">Email/ID</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Teléfono</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Cédula</TableHead>
                         <TableHead className="font-semibold text-gray-700">Cartones</TableHead>
                         <TableHead className="font-semibold text-gray-700">Acciones</TableHead>
                       </TableRow>
@@ -965,7 +986,8 @@ export default function BingoAdminPanel() {
                       {players.map((player, index) => (
                         <TableRow key={player.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                           <TableCell className="font-medium text-gray-900">{player.name}</TableCell>
-                          <TableCell className="text-gray-600">{player.email}</TableCell>
+                          <TableCell className="text-gray-600">{player.phone}</TableCell>
+                          <TableCell className="text-gray-600 font-mono">{player.cedula}</TableCell>
                           <TableCell>
                             <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
                               {player.cardsCount}
@@ -977,7 +999,7 @@ export default function BingoAdminPanel() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                  className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg bg-transparent"
                                 >
                                   <Eye className="w-4 h-4 mr-2" />
                                   Ver Cartones
@@ -986,7 +1008,7 @@ export default function BingoAdminPanel() {
                               <DialogContent className="max-w-4xl">
                                 <DialogHeader>
                                   <DialogTitle className="text-xl font-bold text-gray-800">
-                                    Cartones de {player.name}
+                                    Cartones de {player.name} (C.I: {player.cedula})
                                   </DialogTitle>
                                 </DialogHeader>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
@@ -1070,7 +1092,7 @@ export default function BingoAdminPanel() {
                           onClick={resetGame}
                           variant="outline"
                           size="lg"
-                          className="border-2 border-orange-500 text-orange-600 hover:bg-orange-50 font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="border-2 border-orange-500 text-orange-600 hover:bg-orange-50 font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 bg-transparent"
                         >
                           <RotateCcw className="w-5 h-5 mr-2" />
                           Reiniciar Juego
@@ -1159,8 +1181,12 @@ export default function BingoAdminPanel() {
                                     <span className="text-gray-900">{winner.player.name}</span>
                                   </p>
                                   <p className="flex items-center gap-2">
-                                    <span className="font-semibold text-gray-700">Email/ID:</span>
-                                    <span className="text-gray-900">{winner.player.email}</span>
+                                    <span className="font-semibold text-gray-700">Teléfono:</span>
+                                    <span className="text-gray-900">{winner.player.phone}</span>
+                                  </p>
+                                  <p className="flex items-center gap-2">
+                                    <span className="font-semibold text-gray-700">Cédula:</span>
+                                    <span className="text-gray-900 font-mono">{winner.player.cedula}</span>
                                   </p>
                                   <p className="flex items-center gap-2">
                                     <span className="font-semibold text-gray-700">Cartón ID:</span>

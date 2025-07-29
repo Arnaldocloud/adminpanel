@@ -8,7 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { ShoppingCart, CreditCard, Eye, Clock, XCircle, User, Target, Sparkles, Copy } from "lucide-react"
 
 // Tipos de datos
@@ -23,6 +30,7 @@ interface PurchaseOrder {
   playerName: string
   playerEmail: string
   playerPhone: string
+  playerCedula: string
   cartItems: CartItem[]
   totalAmount: number
   status: "pending" | "paid" | "verified" | "rejected"
@@ -39,8 +47,8 @@ export default function UserPanel() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [playerInfo, setPlayerInfo] = useState({
     name: "",
-    email: "",
     phone: "",
+    cedula: "",
   })
   const [paymentInfo, setPaymentInfo] = useState({
     method: "",
@@ -127,8 +135,8 @@ export default function UserPanel() {
 
   // Procesar compra
   const processPurchase = async () => {
-    if (!playerInfo.name || !playerInfo.email || !playerInfo.phone) {
-      alert("Por favor completa toda tu información personal")
+    if (!playerInfo.name || !playerInfo.phone || !playerInfo.cedula) {
+      alert("Por favor completa tu nombre, teléfono y cédula de identidad")
       return
     }
 
@@ -158,8 +166,9 @@ export default function UserPanel() {
     const newOrder: PurchaseOrder = {
       id: `order-${Date.now()}`,
       playerName: playerInfo.name,
-      playerEmail: playerInfo.email,
+      playerEmail: playerInfo.cedula, // Usar cédula como identificador único
       playerPhone: playerInfo.phone,
+      playerCedula: playerInfo.cedula,
       cartItems: [...cartItems],
       totalAmount: totalAmount,
       status: "pending",
@@ -171,22 +180,13 @@ export default function UserPanel() {
       senderName: paymentInfo.senderName,
     }
 
-    // Simular envío al panel administrativo
+    // Guardar orden en localStorage
     const existingOrders = JSON.parse(localStorage.getItem("bingoOrders") || "[]")
     existingOrders.push(newOrder)
     localStorage.setItem("bingoOrders", JSON.stringify(existingOrders))
 
-    // Enviar notificación de WhatsApp - MEJORADO
+    // Enviar notificación de WhatsApp
     try {
-      console.log("📱 Enviando notificación de orden recibida...")
-      console.log("📊 Datos a enviar:", {
-        playerName: playerInfo.name,
-        playerPhone: playerInfo.phone,
-        orderId: newOrder.id,
-        amount: totalAmount,
-        cartCount: cartItems.length,
-      })
-
       const notificationResponse = await fetch("/api/notifications/order-received", {
         method: "POST",
         headers: {
@@ -201,23 +201,15 @@ export default function UserPanel() {
         }),
       })
 
-      console.log("📱 Status de respuesta:", notificationResponse.status)
-
       const notificationResult = await notificationResponse.json()
-      console.log("📱 Resultado completo:", notificationResult)
 
       if (notificationResponse.ok && notificationResult.success) {
-        console.log("✅ Notificación enviada exitosamente:", notificationResult.messageId)
+        alert("¡Compra enviada exitosamente! Recibirás una confirmación por WhatsApp.")
       } else {
-        console.error("❌ Error en notificación:", notificationResult)
-        // Mostrar el error al usuario
-        alert(
-          `Orden enviada correctamente, pero hubo un problema con la notificación WhatsApp: ${notificationResult.error || "Error desconocido"}`,
-        )
+        alert("Orden enviada correctamente. El administrador verificará tu pago pronto.")
       }
     } catch (error) {
-      console.error("💥 Error crítico enviando notificación:", error)
-      alert(`Orden enviada correctamente, pero no se pudo enviar la notificación WhatsApp. Error: ${error.message}`)
+      alert("Orden enviada correctamente. El administrador verificará tu pago pronto.")
     }
 
     setOrders((prev) => [newOrder, ...prev])
@@ -230,16 +222,14 @@ export default function UserPanel() {
       senderName: "",
     })
     setShowPaymentForm(false)
-
-    alert("¡Compra enviada! Espera la verificación del administrador.")
   }
 
   // Cargar órdenes del localStorage
   useEffect(() => {
     const savedOrders = JSON.parse(localStorage.getItem("bingoOrders") || "[]")
-    const userOrders = savedOrders.filter((order: PurchaseOrder) => order.playerEmail === playerInfo.email)
+    const userOrders = savedOrders.filter((order: PurchaseOrder) => order.playerCedula === playerInfo.cedula)
     setOrders(userOrders)
-  }, [playerInfo.email])
+  }, [playerInfo.cedula])
 
   // Obtener estado de la orden
   const getStatusBadge = (status: string) => {
@@ -307,20 +297,6 @@ export default function UserPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
-                    Email *
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={playerInfo.email}
-                    onChange={(e) => setPlayerInfo((prev) => ({ ...prev, email: e.target.value }))}
-                    placeholder="tu@email.com"
-                    className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="phone" className="text-gray-700 font-medium">
                     Teléfono *
                   </Label>
@@ -331,6 +307,20 @@ export default function UserPanel() {
                     placeholder="0414-1234567"
                     className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cedula" className="text-gray-700 font-medium">
+                    Cédula de Identidad *
+                  </Label>
+                  <Input
+                    id="cedula"
+                    value={playerInfo.cedula}
+                    onChange={(e) => setPlayerInfo((prev) => ({ ...prev, cedula: e.target.value }))}
+                    placeholder="V-12345678"
+                    className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-500">Ejemplo: V-12345678 o E-12345678</p>
                 </div>
               </CardContent>
             </Card>
@@ -412,13 +402,20 @@ export default function UserPanel() {
                           <div className="flex gap-2">
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="border-purple-300 text-purple-600">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-purple-300 text-purple-600 bg-transparent"
+                                >
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>Cartón #{index + 1} - Vista Completa</DialogTitle>
+                                  <DialogDescription>
+                                    Vista completa de todos los números en tu cartón de bingo
+                                  </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid grid-cols-5 gap-2 p-4">
                                   {card.numbers.map((num, i) => (
@@ -436,7 +433,7 @@ export default function UserPanel() {
                               variant="outline"
                               size="sm"
                               onClick={() => removeCardFromCart(card.id)}
-                              className="border-red-300 text-red-600 hover:bg-red-50"
+                              className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent"
                             >
                               <XCircle className="w-4 h-4" />
                             </Button>
@@ -503,6 +500,9 @@ export default function UserPanel() {
                             <p>
                               <span className="font-medium">Total:</span> ${order.totalAmount} USD
                             </p>
+                            <p>
+                              <span className="font-medium">Cédula:</span> {order.playerCedula}
+                            </p>
                           </div>
                           <div>
                             <p>
@@ -546,6 +546,9 @@ export default function UserPanel() {
                 <CreditCard className="h-5 w-5" />
                 Información de Pago - ${totalAmount} USD
               </DialogTitle>
+              <DialogDescription>
+                Completa la información de pago para procesar tu orden de cartones de bingo
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
               {/* Selección de método de pago */}
@@ -761,7 +764,7 @@ export default function UserPanel() {
                     <Alert className="border-0 bg-blue-50">
                       <AlertDescription className="text-blue-800 text-sm">
                         ℹ️ Después de completar el pago, el administrador verificará la transacción y te dará acceso al
-                        juego. Recibirás una confirmación por email.
+                        juego. Recibirás una confirmación por WhatsApp.
                       </AlertDescription>
                     </Alert>
                   </CardContent>
@@ -776,7 +779,7 @@ export default function UserPanel() {
                 >
                   ✅ Confirmar Compra
                 </Button>
-                <Button variant="outline" onClick={() => setShowPaymentForm(false)} className="flex-1">
+                <Button variant="outline" onClick={() => setShowPaymentForm(false)} className="flex-1 bg-transparent">
                   ❌ Cancelar
                 </Button>
               </div>
