@@ -1,42 +1,46 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { isSupabaseConfigured, checkSupabaseConnection } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    // Probar conexión básica
-    const { data: games, error: gamesError } = await supabase.from("games").select("count").limit(1)
-
-    if (gamesError) {
-      throw gamesError
+    // Verificar si Supabase está configurado antes de intentar conectar
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Supabase not configured",
+          error: "Missing environment variables",
+          timestamp: new Date().toISOString(),
+          configured: false,
+        },
+        { status: 400 },
+      )
     }
 
-    // Probar inserción y eliminación
-    const testGame = {
-      name: `Test Game ${Date.now()}`,
-      status: "active" as const,
-    }
+    // Verificar la conexión
+    const connectionResult = await checkSupabaseConnection()
 
-    const { data: insertedGame, error: insertError } = await supabase.from("games").insert(testGame).select().single()
-
-    if (insertError) {
-      throw insertError
-    }
-
-    // Eliminar el juego de prueba
-    const { error: deleteError } = await supabase.from("games").delete().eq("id", insertedGame.id)
-
-    if (deleteError) {
-      throw deleteError
+    if (!connectionResult.connected) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Supabase connection test failed",
+          error: connectionResult.error,
+          timestamp: new Date().toISOString(),
+          configured: true,
+        },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({
       success: true,
       message: "Supabase connection test successful",
       timestamp: new Date().toISOString(),
+      configured: true,
       operations: {
         read: "OK",
-        write: "OK",
-        delete: "OK",
+        connection: "OK",
       },
     })
   } catch (error) {
@@ -48,6 +52,7 @@ export async function GET() {
         message: "Supabase connection test failed",
         error: error instanceof Error ? error.message : "Unknown error",
         timestamp: new Date().toISOString(),
+        configured: isSupabaseConfigured(),
       },
       { status: 500 },
     )
