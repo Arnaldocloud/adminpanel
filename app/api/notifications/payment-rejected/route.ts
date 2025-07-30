@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { sendWhatsAppMessage, messageTemplates } from "@/lib/twilio-service"
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,77 +9,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID
-    const authToken = process.env.TWILIO_AUTH_TOKEN
-    const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886"
-    const isMockMode = !accountSid || !authToken
+    console.log("📱 Enviando notificación de pago rechazado...")
 
-    let result
-
-    if (isMockMode) {
-      result = { success: true, messageId: "mock-id", mock: true }
-    } else {
-      try {
-        const twilio = require("twilio")
-        const client = twilio(accountSid, authToken)
-
-        let formattedPhone = playerPhone.replace(/[\s\-()]/g, "")
-        if (formattedPhone.startsWith("0")) {
-          formattedPhone = "+58" + formattedPhone.substring(1)
-        }
-        if (!formattedPhone.startsWith("+")) {
-          formattedPhone = "+58" + formattedPhone
-        }
-
-        const message = `❌ *Hola ${playerName}*
-
-Lo sentimos, pero tu pago no pudo ser verificado.
-
-📋 *Detalles:*
-• Orden: #${orderId.slice(-8)}
-• Estado: ❌ RECHAZADO
-${reason ? `• Motivo: ${reason}` : ""}
-
-💬 Por favor contacta a nuestro soporte para resolver este inconveniente.
-
-Estamos aquí para ayudarte 🤝`
-
-        const twilioResult = await client.messages.create({
-          from: whatsappNumber,
-          to: `whatsapp:${formattedPhone}`,
-          body: message,
-        })
-
-        result = {
-          success: true,
-          messageId: twilioResult.sid,
-          status: twilioResult.status,
-        }
-      } catch (twilioError) {
-        result = {
-          success: false,
-          error: twilioError.message,
-          code: twilioError.code,
-        }
-      }
-    }
+    const message = messageTemplates.paymentRejected(playerName, orderId, reason)
+    const result = await sendWhatsAppMessage(playerPhone, message)
 
     if (result.success) {
       return NextResponse.json({
         success: true,
         messageId: result.messageId,
-        mock: result.mock || isMockMode,
+        mock: result.mock || false,
+        fallback: result.fallback || false,
       })
     } else {
       return NextResponse.json(
-        { error: "Failed to send WhatsApp notification", details: result.error, code: result.code },
+        {
+          success: false,
+          error: result.error,
+        },
         { status: 500 },
       )
     }
   } catch (error: any) {
+    console.error("💥 Error en payment-rejected:", error)
+
     return NextResponse.json(
       {
-        error: "Internal server error",
+        success: false,
+        error: "Error interno del servidor",
         details: error.message,
       },
       { status: 500 },

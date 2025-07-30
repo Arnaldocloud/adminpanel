@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { sendWhatsAppMessage, messageTemplates } from "@/lib/twilio-service"
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,85 +9,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID
-    const authToken = process.env.TWILIO_AUTH_TOKEN
-    const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886"
-    const isMockMode = !accountSid || !authToken
+    console.log("📱 Enviando notificación de orden recibida...")
 
-    let result
-
-    if (isMockMode) {
-      result = {
-        success: true,
-        messageId: `mock-order-${Date.now()}`,
-        mock: true,
-      }
-    } else {
-      try {
-        const twilio = require("twilio")
-        const client = twilio(accountSid, authToken)
-
-        let formattedPhone = playerPhone.replace(/[\s\-()]/g, "")
-        if (formattedPhone.startsWith("0")) {
-          formattedPhone = "+58" + formattedPhone.substring(1)
-        }
-        if (!formattedPhone.startsWith("+")) {
-          formattedPhone = "+58" + formattedPhone
-        }
-
-        const message = `🎯 *¡Hola ${playerName}!*
-
-✅ Hemos recibido tu orden de compra de cartones de bingo.
-
-📋 *Detalles de tu orden:*
-• ID: #${orderId.slice(-8)}
-• Cartones: ${cartCount}
-• Total: $${amount} USD
-
-⏳ Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando esté listo.
-
-¡Gracias por participar en nuestro bingo! 🎉`
-
-        const twilioResult = await client.messages.create({
-          from: whatsappNumber,
-          to: `whatsapp:${formattedPhone}`,
-          body: message,
-        })
-
-        result = {
-          success: true,
-          messageId: twilioResult.sid,
-          status: twilioResult.status,
-        }
-      } catch (twilioError) {
-        result = {
-          success: false,
-          error: twilioError.message,
-          code: twilioError.code,
-        }
-      }
-    }
+    const message = messageTemplates.orderReceived(playerName, orderId, amount, cartCount)
+    const result = await sendWhatsAppMessage(playerPhone, message)
 
     if (result.success) {
       return NextResponse.json({
         success: true,
         messageId: result.messageId,
-        mock: result.mock || isMockMode,
+        mock: result.mock || false,
+        fallback: result.fallback || false,
       })
     } else {
       return NextResponse.json(
         {
-          error: "Failed to send WhatsApp notification",
-          details: result.error,
-          code: result.code,
+          success: false,
+          error: result.error,
         },
         { status: 500 },
       )
     }
   } catch (error: any) {
+    console.error("💥 Error en order-received:", error)
+
     return NextResponse.json(
       {
-        error: "Internal server error",
+        success: false,
+        error: "Error interno del servidor",
         details: error.message,
       },
       { status: 500 },
