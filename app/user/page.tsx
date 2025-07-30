@@ -50,8 +50,6 @@ export default function UserPanel() {
     phone: "",
     cedula: "",
     rif: "",
-    numero: "",
-    titular: "",
   })
   const [paymentInfo, setPaymentInfo] = useState({
     method: "",
@@ -71,24 +69,27 @@ export default function UserPanel() {
   // Información de cuentas para pagos
   const PAYMENT_ACCOUNTS = {
     "pago-movil": {
-      name: "📲 Pago Móvil",
+      name: "Pago Móvil",
       bank: "Banca amiga (0172)",
-      phone: "0412-7744131",
+      phone: "04127744131",
       rif: "J-506727323",
+      holder: "BINGO ADMIN C.A.",
     },
     zelle: {
-      name: "💸 Zelle",
-      Numero: "3159809138",
-      Titular: "Eliezer José Pérez Sánchez"
+      name: "Zelle",
+      number: "3159809138",
+      holder: "Eliezer José Pérez Sánchez",
+      country: "Estados Unidos"
     },
     nequi: {
-      name: "nequi",
-      Numero: "3237223368",
-      Titular: "Matias Rodriguez"
+      name: "Nequi",
+      number: "3237223368",
+      holder: "Matia Rodríguez",
+      country: "Colombia"
     },
-    Zinli: {
-      name: "💳 Zinli",
-      email: "carlosalfredorojass100@gmail.com",
+    zinli: {
+      name: "Zinli",
+      email: "carlosalfredorojas100@gmail.com",
       holder: "Carlos Rojas"
     },
   }
@@ -270,7 +271,7 @@ export default function UserPanel() {
           </p>
           <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-xl max-w-md mx-auto">
             <p className="text-green-800 font-bold">💰 Precio por cartón: ${CARD_PRICE} USD</p>
-            <p className="text-green-700 text-sm">Métodos de pago disponibles: Pago Móvil, Zelle, Nequi, Zinli</p>
+            <p className="text-green-700 text-sm">Métodos de pago disponibles: Banca Amiga, Zelle, Nequi, Zinli</p>
           </div>
         </div>
 
@@ -470,9 +471,9 @@ export default function UserPanel() {
                 )}
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
 
             {/* Mis Órdenes */}
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
@@ -578,12 +579,10 @@ export default function UserPanel() {
                         <div>
                           <p className="font-bold text-gray-800">{account.name}</p>
                           <p className="text-sm text-gray-600">
-                            {key === "📲 pago-movil" && "🇻🇪 Método preferido en Venezuela"}
-                            {key === "💸 zelle" && " (Estados Unidos) a partir de 10$ en adelante"}
-                            <p className="text-sm text-gray-600">
-                              {key === "nequi" && "(Colombia) - a partir de 10mil pesos en adelante"}
-                            </p>
-                            {key === "💳 Zinli" && "a partir de 10$ en adelante:"}
+                            {key === "pago-movil" && "🇻🇪 📲 Método preferido en Venezuela"}
+                            {key === "zelle" && "🇺🇸💸(Estados Unidos) a partir de 10$ en adelante"}
+                            {key === "nequi" && "🇨🇴 (Colombia) a partir de 10mil pesos en adelante"}
+                            {key === "zinli" && "💳 a partir de 10$ en adelante"}
                           </p>
                         </div>
                       </div>
@@ -607,7 +606,8 @@ export default function UserPanel() {
                           <div>
                             <p className="font-bold">🏦 Banco: {PAYMENT_ACCOUNTS["pago-movil"].bank}</p>
                             <p>📱 Teléfono: {PAYMENT_ACCOUNTS["pago-movil"].phone}</p>
-                            <p>🆔 Rif: {PAYMENT_ACCOUNTS["pago-movil"].rif}</p>
+                            <p>🆔 RIF: {PAYMENT_ACCOUNTS["pago-movil"].rif}</p>
+                            <p>👤 Titular: {PAYMENT_ACCOUNTS["pago-movil"].holder}</p>
                           </div>
                           <Button
                             size="sm"
@@ -630,12 +630,13 @@ export default function UserPanel() {
                       <>
                         <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                           <div>
-                            <p className="font-bold">📱 Numero: {PAYMENT_ACCOUNTS.zelle.Numero}</p>
-                            <p>👤 Titular: {PAYMENT_ACCOUNTS.zelle.Titular}</p>
+                            <p className="font-bold">📧 Número: {PAYMENT_ACCOUNTS.zelle.number}</p>
+                            <p>👤 Titular: {PAYMENT_ACCOUNTS.zelle.holder}</p>
+                            <p>🌎 País: {PAYMENT_ACCOUNTS.zelle.country}</p>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.zelle.Numero)}
+                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.zelle.number)}
                             className="bg-blue-600 hover:bg-blue-700"
                           >
                             <Copy className="w-4 h-4" />
@@ -654,12 +655,13 @@ export default function UserPanel() {
                       <>
                         <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                           <div>
-                            <p className="font-bold">🆔 Numero: {PAYMENT_ACCOUNTS.nequi.Numero}</p>
-                            <p>👤 Titular: {PAYMENT_ACCOUNTS.nequi.Titular}</p>
+                            <p className="font-bold">📧 Número: {PAYMENT_ACCOUNTS.nequi.number}</p>
+                            <p>👤 Titular: {PAYMENT_ACCOUNTS.nequi.holder}</p>
+                            <p>🌎 País: {PAYMENT_ACCOUNTS.nequi.country}</p>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.nequi.Numero)}
+                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.nequi.number)}
                             className="bg-blue-600 hover:bg-blue-700"
                           >
                             <Copy className="w-4 h-4" />
@@ -667,23 +669,23 @@ export default function UserPanel() {
                         </div>
                         <Alert className="border-orange-300 bg-orange-50">
                           <AlertDescription className="text-orange-800">
-                            💡 <strong>Instrucciones:</strong> Usa Nequi para enviar{" "}
-                            <strong>${totalAmount} USD</strong> y proporciona el ID de confirmación.
+                            💡 <strong>Instrucciones:</strong> Envía <strong>${totalAmount} USD</strong> por Nequi y
+                            proporciona el ID de confirmación.
                           </AlertDescription>
                         </Alert>
                       </>
                     )}
 
-                    {paymentInfo.method === "Zinli" && (
+                    {paymentInfo.method === "zinli" && (
                       <>
                         <div className="flex justify-between items-center p-3 bg-white rounded-lg">
                           <div>
-                            <p className="font-bold">📧 email: {PAYMENT_ACCOUNTS.Zinli.email}</p>
-                            <p>👤 Titular: {PAYMENT_ACCOUNTS.Zinli.holder}</p>
+                            <p className="font-bold">📧 Email: {PAYMENT_ACCOUNTS.zinli.email}</p>
+                            <p>👤 Titular: {PAYMENT_ACCOUNTS.zinli.holder}</p>
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.Zinli.email)}
+                            onClick={() => copyToClipboard(PAYMENT_ACCOUNTS.zinli.email)}
                             className="bg-blue-600 hover:bg-blue-700"
                           >
                             <Copy className="w-4 h-4" />
@@ -692,7 +694,7 @@ export default function UserPanel() {
                         <Alert className="border-blue-300 bg-blue-50">
                           <AlertDescription className="text-blue-800">
                             💡 <strong>Instrucciones:</strong> Envía <strong>${totalAmount} USD</strong> por Zinli y
-                            proporciona el ID de transacción.
+                            proporciona el ID de confirmación.
                           </AlertDescription>
                         </Alert>
                       </>
