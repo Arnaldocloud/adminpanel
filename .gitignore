@@ -2,6 +2,15 @@
 
 # dependencies
 /node_modules
+<<<<<<< HEAD
+=======
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+>>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e
 
 # next.js
 /.next/
@@ -10,21 +19,36 @@
 # production
 /build
 
+<<<<<<< HEAD
+=======
+# misc
+.DS_Store
+*.pem
+
+>>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
 .pnpm-debug.log*
 
 # env files
 .env*
 .env.local
+=======
+
+# local env files
+.env*.local
+
+>>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+<<<<<<< HEAD
 
 # System files
 .DS_Store
@@ -75,3 +99,5 @@ temp-adminpanel/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+=======
+>>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e

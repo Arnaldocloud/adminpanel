@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "build": {
+    "env": {
+      "NODE_VERSION": "20.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}

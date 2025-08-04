@@ -1,0 +1,451 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion"; // Importamos Framer Motion
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  BookOpen,
+  FileText,
+  Video,
+  Instagram,
+  Youtube,
+  Menu,
+  X,
+  Globe,
+  Linkedin,
+  Github,
+  Twitch,
+  Facebook,
+} from "lucide-react";
+
+// Función para seleccionar el icono correcto según el enlace
+const getIconForLink = (url: string) => {
+  if (url.includes("instagram")) return Instagram;
+  if (url.includes("youtube")) return Youtube;
+  if (url.includes("linkedin")) return Linkedin;
+  if (url.includes("github")) return Github;
+  if (url.includes("twitch")) return Twitch;
+  if (url.includes("facebook")) return Facebook;
+  return Globe;
+};
+
+export function HomePage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  // Barra de progreso de scroll
+  const handleScroll = () => {
+    const scrollTop = window.scrollY;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    setScrollPosition(progress);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Variantes para animaciones de las tarjetas
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+  };
+
+  // Lista de artículos (ejemplo)
+  const articles = [
+    {
+      title: "Último Artículo",
+      desc: "Descubre mis pensamientos más recientes en este artículo PDF.",
+      badge: "PDF",
+      pdf: "https://drive.google.com/file/d/1JmykoaRHugSjt-NHZtMZHKQB8DNoMsFH/view?usp=drive_link",
+    },
+    {
+      title: "Guía Completa",
+      desc: "Una guía detallada sobre un tema de gran interés.",
+      badge: "Nuevo",
+      pdf: "https://drive.google.com/file/d/1k3r6k51RVOyxlv458jPuLxnouvZDqiSn/view?usp=drive_link",
+    },
+    {
+      title: "Análisis en Profundidad",
+      desc: "Un análisis detallado de las últimas tendencias.",
+      badge: "Popular",
+      pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    },
+  ];
+
+  // Lista de videos (ejemplo)
+  const videos = [
+    {
+      title: "Video Trending",
+      desc: "Mira mi video más popular de esta semana.",
+      badge: "YouTube",
+      link: "https://www.youtube.com/watch?v=hEiFYu2QR50",
+    },
+    {
+      title: "Tutorial Paso a Paso",
+      desc: "Aprende una nueva habilidad con este tutorial detallado.",
+      badge: "Educativo",
+      link: "https://www.youtube.com/watch?v=VxrIZGQfxmE&t=9s",
+    },
+    {
+      title: "Entrevista Exclusiva",
+      desc: "Una conversación fascinante con un experto en el campo.",
+      badge: "Exclusivo",
+      link: "https://www.youtube.com/watch?v=PR7ysC-6-00&t=19s",
+    },
+  ];
+
+  return (
+    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+      {/* Barra de progreso del scroll */}
+      <motion.div
+        className="fixed top-0 left-0 h-2 bg-yellow-600 z-50"
+        style={{ width: `${scrollPosition}%` }}
+      />
+
+      <header
+        className={`px-4 lg:px-6 h-16 flex items-center sticky top-0 w-full z-20 ${
+          scrollPosition > -0 ? "bg-black bg-opacity-600 shadow-lg" : "bg-transparent"
+        }`}
+      >
+        <Link className="flex items-center justify-center" href="#inicio">
+          <BookOpen
+            className="h-6 w-6 text-yellow-600
+ transition-transform duration-300 hover:scale-110 drop-shadow-md"
+          />
+          <span className="ml-2 text-2xl font-bold  text-yellow-600 drop-shadow-md">
+            Codificatufuturo
+          </span>
+        </Link>
+        <button
+          className="ml-auto lg:hidden text-yellow-600 drop-shadow-md"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >🧑‍💻
+          {isMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
+
+        {/* Menú hamburguesa en móvil */}
+        <nav
+          className={`${
+            isMenuOpen ? "flex" : "hidden"
+          } fixed top-0 left-0 w-full h-full bg-black bg-opacity-700 bg-opacity-9 z-50 flex-col items-center justify-center lg:hidden`} // Mostramos solo en móvil
+        >
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
+            (item) => (
+              <Link
+                key={item}
+                className="text-2xl font-bold  text-yellow-600 py-4 drop-shadow-md"
+                href={`#${item}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </Link>
+            )
+          )}
+        </nav>
+
+        {/* Menú de navegación en desktop */}
+        <nav className="hidden lg:flex gap-6 ml-auto">
+          {["inicio", "articulos", "videos", "sobre-mí", "enlaces"].map(
+            (item) => (
+              <Link
+                key={item}
+                className="text-sm font-medium  text-yellow-600 relative group drop-shadow-md"
+                href={`#${item}`}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+                <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out drop-shadow-md"></span>
+              </Link>
+            )
+          )}
+        </nav>
+      </header>
+
+      <main className="flex-1 pt-16">
+        <section
+          id="inicio"
+          className="w-full py-12 md:py-24 lg:py-32 xl:py-48 relative"
+        >
+          {/* Efecto Parallax */}
+          <motion.div
+            className="absolute inset-0 bg-fixed"
+            style={{ backgroundImage: "url('/path/to/your/image.jpg')" }}
+            animate={{ backgroundPositionY: scrollPosition * 0.5 }}
+            transition={{ ease: "easeOut", duration: 0.5 }}
+          ></motion.div>
+          <div className="container relative z-10 px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none  text-white drop-shadow-md">
+                  Bienvenidos a mi mundo creativo
+                </h1>
+                <br />
+                <p className="mx-auto max-w-[700px]  text-white md:text-xl drop-shadow-md">
+                  Explora mis artículos, videos y más. Mantente actualizado con
+                  todo mi contenido.
+                </p>
+                <br />
+              </motion.div>
+              <div className="w-full max-w-sm space-y-2">
+                <form className="flex space-x-2">
+                  <Input
+                    className="max-w-lg flex-1 bg-white/10 text-white placeholder:text-white/70 focus:ring-2 focus:ring-white transition-all duration-300 drop-shadow-md"
+                    placeholder="Ingresa tu email"
+                    type="email"
+                  />
+                  <Button
+                    className="bg-white text-yellow-900 hover:bg-yellow-600 hover:text-white transition-all duration-300 drop-shadow-md"
+                    type="submit"
+                  >
+                    Suscribirse
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Artículos destacados con animación */}
+        <section
+          id="articulos"
+          className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
+        >
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8 drop-shadow-md">
+              Artículos Destacados
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {articles.map((article, index) => (
+                <motion.div
+                  key={index}
+                  variants={cardVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                >
+                  <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
+                    <CardContent className="p-6">
+                      <FileText className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
+                        {article.title}
+                      </h3>
+                      <p className="text-white/80 mb-4">{article.desc}</p>
+                      <Link
+                        href={article.pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Badge className="mt-4 bg-white text-yellow-900 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
+                          {article.badge}
+                        </Badge>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Videos populares con animación */}
+        <section
+          id="videos"
+          className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
+        >
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8 drop-shadow-md">
+              Videos Populares
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {videos.map((video, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Card className="bg-white/20 backdrop-blur-lg border-0 group hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-2">
+                    <CardContent className="p-6">
+                      <Video className="h-12 w-12 text-white mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
+                        {video.title}
+                      </h3>
+                      <p className="text-white/80 drop-shadow-md">
+                        {video.desc}
+                      </p>
+                      {video.link ? (
+                        <Link
+                          href={video.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Badge className="mt-4 bg-white text-yellow-900 group-hover:bg-yellow-600 drop-shadow-md group-hover:text-white transition-colors duration-300 cursor-pointer">
+                            {video.badge}
+                          </Badge>
+                        </Link>
+                      ) : (
+                        <Badge className="mt-4 bg-red-600 text-white group-hover:bg-white drop-shadow-md group-hover:text-red-600 transition-colors duration-300">
+                          {video.badge}
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Sección "Sobre Mí" con efecto morphing */}
+        <section
+          id="sobre-mí"
+          className="w-full py-12 md:py-24 lg:py-32 bg-white/10 backdrop-blur-lg"
+        >
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white text-center mb-8">
+              {" "}
+              Sobre Mí
+            </h2>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white/20 backdrop-blur-lg border-0 hover:bg-white/30 transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-full md:w-1/3">
+                      <div className="aspect-square bg-gray-100 rounded-full overflow-hidden group drop-shadow-md">
+                        <Image
+                          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic%20(2)-Z3rreBr6OALIi9VuadmweRCLfEMwr0.png"
+                          alt="Tu Nombre"
+                          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
+                          width={300}
+                          height={300}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-full md:w-2/3">
+                      <h3 className="text-2xl font-bold text-white mb-4 drop-shadow-md">
+                        Jesús Romero
+                      </h3>
+                      <p className="text-white/80 mb-4 drop-shadow-md">
+                        Soy un apasionado creador de contenido con una profunda
+                        conexión con la tecnología. A lo largo de los años, he
+                        acumulado experiencia en la reparación y mantenimiento
+                        de computadoras, la configuración de redes inalámbricas
+                        y el desarrollo web. Mi objetivo principal es compartir
+                        conocimientos y experiencias que inspiren y ayuden a
+                        otros a alcanzar sus metas.
+                      </p>
+
+                      <p className="text-white/80 drop-shadow-md">
+                        A través de artículos, videos y tutoriales, busco
+                        proporcionar contenido valioso y práctico que marque la
+                        diferencia en la vida de mis seguidores. ¡Te invito a
+                        unirte a mí en este emocionante viaje de aprendizaje y
+                        crecimiento continuo!
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Enlaces sociales con animación interactiva */}
+        <section
+          id="enlaces"
+          className="w-full py-12 md:py-24 lg:py-32 bg-white/5 backdrop-blur-lg"
+        >
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl  text-white text-center mb-8 drop-shadow-md">
+              Mis Enlaces
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                {
+                  url: "https://www.instagram.com/codificatufuturo/",
+                  name: "Instagram",
+                },
+                {
+                  url: "https://www.youtube.com/@codificatufuturo",
+                  name: "YouTube",
+                },
+                {
+                  url: "https://www.linkedin.com/in/jesús-romero-7202b1264/",
+                  name: "LinkedIn",
+                },
+                { url: "https://github.com/Arnaldocloud", name: "GitHub" },
+                {
+                  url: "https://www.facebook.com/codificatufuturo/",
+                  name: "Facebook",
+                },
+                {
+                  url: "https://www.twitch.tv/codificatufuturo",
+                  name: "Twitch",
+                },
+              ].map((link, index) => {
+                const Icon = getIconForLink(link.url);
+                return (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.2, rotate: 15 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Link
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-lg rounded-lg hover:bg-white/30 transition-all duration-300 group"
+                    >
+                      <Icon className="h-8 w-8  text-yellow-600 mb-2 group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                      <span className="text-sm font-medium  text-yellow-600 text-center drop-shadow-md">
+                        {link.name}
+                      </span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t border-white/10">
+        <p className="text-xs text-white/70 drop-shadow-md">
+          © 2024 Codificatufuturo. Todos los derechos reservados.
+        </p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link
+            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300 drop-shadow-md"
+            href="#"
+          >
+            Términos de Servicio
+          </Link>
+          <Link
+            className="text-xs hover:underline underline-offset-4 text-white transition-colors duration-300 drop-shadow-md"
+            href="#"
+          >
+            Privacidad
+          </Link>
+        </nav>
+      </footer>
+    </div>
+  );
+}
