@@ -25,3 +25,53 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Windows system files
+[Nn]tuser.*
+[Nn]tuser.ini
+*.regtrans-ms
+*.log1
+*.log2
+
+# User specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Directories to ignore
+.idea/
+.vscode/
+.cache/
+.android/
+.n8n/
+.windsurf/
+
+# User profile directories (Windows)
+AppData/
+Contacts/
+Desktop/
+Downloads/
+Favorites/
+Music/
+Pictures/
+Saved Games/
+Searches/
+Videos/
+
+# Project specific ignores
+kiddo-qr/
+moto-repuesto/
+landing-page/
+Webhook-externo/
+practica-node/
+temp-adminpanel/
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
