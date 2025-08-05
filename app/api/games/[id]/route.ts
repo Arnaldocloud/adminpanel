@@ -50,9 +50,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       players: players.rows.map((p) => ({
         ...p,
         cards: p.card_ids
-          ? p.card_ids.split(",").map((id, index) => ({
+          ? p.card_ids.split(",").map((id: string, index: number) => ({
               id,
-              numbers: JSON.parse(p.card_numbers.split(",")[index]),
+              numbers: JSON.parse(p.card_numbers.split(",")[index]) as number[],
             }))
           : [],
       })),
