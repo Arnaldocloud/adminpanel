@@ -2,10 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-<<<<<<< HEAD
     "target": "ES6",
-=======
->>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
