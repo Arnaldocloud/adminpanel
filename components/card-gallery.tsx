@@ -149,8 +149,59 @@ export default function CardGallery({ userCedula, onCardsSelected, maxCards = 10
 
   // Cargar datos iniciales
   useEffect(() => {
-    loadCards()
-    loadReservedCards()
+    // Mover la definición de las funciones dentro del useEffect
+    const loadData = async () => {
+      try {
+        // Cargar cartones disponibles
+        const loadCards = async (pageNum = 1, append = false) => {
+          if (pageNum === 1) setLoading(true)
+          else setLoadingMore(true)
+
+          try {
+            const result = await cardInventoryService.getAvailableCards(pageNum, 20)
+
+            if (append) {
+              setCards((prev) => [...prev, ...result.cards])
+            } else {
+              setCards(result.cards)
+            }
+
+            setHasMore(result.hasMore)
+            setPage(pageNum)
+          } catch (error) {
+            console.error("Error loading cards:", error)
+          } finally {
+            setLoading(false)
+            setLoadingMore(false)
+          }
+        }
+
+        // Cargar cartones reservados del usuario
+        const loadReservedCards = async () => {
+          try {
+            const reserved = await cardInventoryService.getUserReservedCards(userCedula)
+            setReservedCards(reserved)
+
+            // Si hay reservas, iniciar timer
+            if (reserved.length > 0 && reserved[0].reservedUntil) {
+              const timeLeft = new Date(reserved[0].reservedUntil).getTime() - Date.now()
+              if (timeLeft > 0) {
+                setReservationTimer(Math.floor(timeLeft / 1000))
+              }
+            }
+          } catch (error) {
+            console.error("Error loading reserved cards:", error)
+          }
+        }
+
+        // Ejecutar ambas cargas
+        await Promise.all([loadCards(), loadReservedCards()])
+      } catch (error) {
+        console.error("Error in initial load:", error)
+      }
+    }
+
+    loadData()
   }, [userCedula])
 
   // Filtrar cartones por búsqueda

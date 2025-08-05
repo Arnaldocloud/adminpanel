@@ -39,6 +39,7 @@ const CardGallery: FC<CardGalleryProps> = ({
   const [internalSelectedCards, setInternalSelectedCards] = useState<CardImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isReserving, setIsReserving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -51,20 +52,43 @@ const CardGallery: FC<CardGalleryProps> = ({
     }
   }, [externalSelectedCards]);
 
+  // Función para transformar los datos de la API al formato esperado
+  const transformCardData = useCallback((apiCard: any): CardImage => ({
+    id: apiCard.id || `card-${apiCard.card_number}`,
+    cardNumber: apiCard.card_number,
+    numbers: apiCard.numbers || [],
+    imageUrl: apiCard.image_url,
+    isAvailable: apiCard.is_available,
+    isReserved: !apiCard.is_available && !!apiCard.reserved_by,
+    reservedBy: apiCard.reserved_by,
+    reservedUntil: apiCard.reserved_until,
+    isReserving: false
+  }), []);
+
   // Función para cargar más cartones (paginación)
   const loadMoreCards = useCallback(async () => {
-    if (isLoading || isLoadingMore || !hasMore) return;
+    if (!hasMore || isLoading || isLoadingMore) return;
     
+    setIsLoadingMore(true);
     try {
-      setIsLoadingMore(true);
       const nextPage = page + 1;
-      const { cards: newCards, hasMore: moreAvailable } = await fetchCards(nextPage);
+      const response = await fetch(`/api/cards?page=${nextPage}`);
+      const data = await response.json();
       
-      setCards(prev => [...prev, ...newCards]);
+      if (data.cards.length === 0) {
+        setHasMore(false);
+        toast({
+          title: 'No hay más cartones',
+          description: 'Has llegado al final de los cartones disponibles',
+        });
+        return;
+      }
+      
+      const newCards = data.cards.map(transformCardData);
+      setCards(prevCards => [...prevCards, ...newCards]);
       setPage(nextPage);
-      setHasMore(moreAvailable);
-    } catch (err) {
-      console.error('Error loading more cards:', err);
+    } catch (error) {
+      console.error('Error loading more cards:', error);
       toast({
         title: 'Error',
         description: 'No se pudieron cargar más cartones',
@@ -73,10 +97,12 @@ const CardGallery: FC<CardGalleryProps> = ({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [page, hasMore, isLoading, isLoadingMore, toast]);
+  }, [page, hasMore, isLoading, isLoadingMore, toast, transformCardData]);
   
   // Configurar el observer para carga infinita
   useEffect(() => {
+    if (!loadMoreCards) return;
+    
     const handleScroll = () => {
       if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 300) return;
       loadMoreCards();
@@ -86,52 +112,41 @@ const CardGallery: FC<CardGalleryProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [loadMoreCards]);
 
-  // Función para transformar los datos de la API al formato esperado por el componente
-  const transformCardData = (apiCard: any): CardImage => ({
-    id: apiCard.id || `card-${apiCard.card_number}`,
-    cardNumber: apiCard.card_number,
-    imageUrl: apiCard.image_url,
-    isAvailable: apiCard.is_available,
-    isReserved: !apiCard.is_available && !!apiCard.reserved_by,
-    reservedBy: apiCard.reserved_by,
-    reservedUntil: apiCard.reserved_until,
-    isReserving: false,
-    numbers: apiCard.numbers || Array.from({ length: 25 }, (_, i) => i + 1)
-  });
-
   // Función para cargar los cartones
-  const fetchCards = async (pageNum = 1, limit = 20) => {
+  const fetchCards = useCallback(async (pageNum = 1, limit = 20) => {
+    const isFirstPage = pageNum === 1;
+    
     try {
-      const isFirstPage = pageNum === 1;
       if (isFirstPage) {
         setIsLoading(true);
         setError(null);
       } else {
         setIsLoadingMore(true);
       }
+
+      const { cards, total, hasMore: fetchError } = await cardInventoryService.getAvailableCards(pageNum, limit);
       
-      // Obtener cartones disponibles o reservados por el usuario actual
-      const { cards: fetchedCards, total, hasMore: moreAvailable } = 
-        await cardInventoryService.getAvailableCards(pageNum, limit, userCedula);
-      
-      const transformedCards = fetchedCards.map(transformCardData);
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const newCards = cards.map(transformCardData);
       
       if (isFirstPage) {
-        setCards(transformedCards);
+        setCards(newCards);
       } else {
-        setCards(prev => [...prev, ...transformedCards]);
+        setCards(prevCards => [...prevCards, ...newCards]);
       }
       
-      setHasMore(moreAvailable);
+      setHasMore(newCards.length === limit);
       
-      return { 
-        cards: transformedCards, 
-        hasMore: moreAvailable 
+      return {
+        cards: newCards,
+        hasMore: newCards.length === limit
       };
     } catch (err) {
-      console.error('Error al cargar cartones:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError('No se pudieron cargar los cartones. ' + errorMessage);
+      console.error('Error loading cards:', err);
+      setError('Error al cargar los cartones. Por favor, intenta de nuevo.');
       
       toast({
         title: 'Error',
@@ -141,24 +156,29 @@ const CardGallery: FC<CardGalleryProps> = ({
       
       return { cards: [], hasMore: false };
     } finally {
-      if (page === 1) {
+      if (isFirstPage) {
         setIsLoading(false);
       } else {
         setIsLoadingMore(false);
       }
     }
-  };
+  }, [userCedula, transformCardData, toast]);
 
   // Cargar los cartones disponibles
   useEffect(() => {
     fetchCards(1, 20);
-  }, [userCedula]);
+  }, [fetchCards]);
+
+  // Cargar los cartones disponibles
+  useEffect(() => {
+    fetchCards(1, 20);
+  }, [userCedula, fetchCards]);
   
   // Suscribirse a cambios en tiempo real
   useEffect(() => {
     const subscription = cardInventoryService.subscribeToCards(
       (updatedCards) => {
-        setCards(updatedCards);
+        setCards(updatedCards.map(transformCardData));
       },
       { reservedBy: userCedula }
     );
@@ -216,6 +236,61 @@ const CardGallery: FC<CardGalleryProps> = ({
   // Determinar si un cartón está disponible para selección
   const isCardAvailable = (card: CardImage) => {
     return card.isAvailable || isReservedByCurrentUser(card);
+  };
+
+  // Función para manejar la reserva de cartones seleccionados
+  const handleReserveCards = async () => {
+    if (internalSelectedCards.length === 0 || isReserving) return;
+    
+    setIsReserving(true);
+    
+    try {
+      // Llamar al servicio para reservar los cartones
+      const { success, error } = await cardInventoryService.reserveCards(
+        internalSelectedCards.map(card => card.cardNumber),
+        userCedula
+      );
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Actualizar el estado local de los cartones
+      setCards(prevCards => 
+        prevCards.map(card => {
+          const isSelected = internalSelectedCards.some(c => c.cardNumber === card.cardNumber);
+          if (isSelected) {
+            return {
+              ...card,
+              isReserved: true,
+              isAvailable: false,
+              reservedBy: userCedula,
+              reservedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas desde ahora
+            };
+          }
+          return card;
+        })
+      );
+      
+      // Limpiar la selección
+      setInternalSelectedCards([]);
+      onCardsSelected([]);
+      
+      toast({
+        title: '¡Reserva exitosa!',
+        description: `Has reservado ${internalSelectedCards.length} cartón(es) correctamente.`,
+      });
+      
+    } catch (err) {
+      console.error('Error al reservar cartones:', err);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron reservar los cartones. Por favor, inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReserving(false);
+    }
   };
 
   if (isLoading) {
@@ -283,13 +358,13 @@ const CardGallery: FC<CardGalleryProps> = ({
       <div className="mb-4">
         <h3 className="text-lg font-medium">Selecciona hasta {maxCards} cartones</h3>
         <p className="text-sm text-gray-500">
-          {selectedCards.length} de {maxCards} cartones seleccionados
+          {internalSelectedCards.length} de {maxCards} cartones seleccionados
         </p>
         <Button 
           variant="default" 
           className="mt-2"
           onClick={handleReserveCards}
-          disabled={selectedCards.length === 0 || isReserving}
+          disabled={internalSelectedCards.length === 0 || isReserving}
         >
           {isReserving ? (
             <>
@@ -297,7 +372,7 @@ const CardGallery: FC<CardGalleryProps> = ({
               Procesando...
             </>
           ) : (
-            `Reservar ${selectedCards.length} cartón${selectedCards.length !== 1 ? 'es' : ''}`
+            `Reservar ${internalSelectedCards.length} cartón${internalSelectedCards.length !== 1 ? 'es' : ''}`
           )}
         </Button>
       </div>

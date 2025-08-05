@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -429,11 +430,14 @@ export default function UserPanel() {
                                       <DialogHeader>
                                         <DialogTitle>Cartón #{card.cardNumber}</DialogTitle>
                                       </DialogHeader>
-                                      <img
-                                        src={card.imageUrl || "/placeholder.svg"}
-                                        alt={`Cartón ${card.cardNumber}`}
-                                        className="w-full rounded-lg"
-                                      />
+                                      <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden">
+                                        <Image
+                                          src={card.imageUrl || "/placeholder.svg"}
+                                          alt={`Cartón ${card.cardNumber}`}
+                                          fill
+                                          className="object-cover"
+                                        />
+                                      </div>
                                     </DialogContent>
                                   </Dialog>
                                 )}
@@ -449,11 +453,14 @@ export default function UserPanel() {
                             </div>
 
                             {card.imageUrl ? (
-                              <img
-                                src={card.imageUrl || "/placeholder.svg"}
-                                alt={`Cartón ${card.cardNumber}`}
-                                className="w-full h-32 object-cover rounded-lg mb-3"
-                              />
+                              <div className="relative w-full h-32 rounded-lg mb-3 overflow-hidden">
+                                <Image
+                                  src={card.imageUrl || "/placeholder.svg"}
+                                  alt={`Cartón ${card.cardNumber}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="grid grid-cols-5 gap-1 text-xs mb-3">
                                 {card.numbers.slice(0, 10).map((num, i) => (
@@ -477,7 +484,7 @@ export default function UserPanel() {
                       <Alert className="border-0 bg-gradient-to-r from-blue-100 to-purple-100 shadow-lg rounded-xl">
                         <Grid3X3 className="h-4 w-4" />
                         <AlertDescription className="text-blue-800 font-medium">
-                          No has seleccionado cartones aún. Ve a "Seleccionar Cartones" para elegir de la galería.
+                          No has seleccionado cartones aún. Ve a &quot;Seleccionar Cartones&quot; para elegir de la galería.
                         </AlertDescription>
                       </Alert>
                     )}
