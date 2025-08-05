@@ -167,12 +167,7 @@ const CardGallery: FC<CardGalleryProps> = ({
   // Cargar los cartones disponibles
   useEffect(() => {
     fetchCards(1, 20);
-  }, [fetchCards]);
-
-  // Cargar los cartones disponibles
-  useEffect(() => {
-    fetchCards(1, 20);
-  }, [userCedula, fetchCards]);
+  }, [fetchCards, userCedula]);
   
   // Suscribirse a cambios en tiempo real
   useEffect(() => {
