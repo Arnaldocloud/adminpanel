@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
   "build": {
     "env": {
       "NODE_VERSION": "20.x"
@@ -7,5 +10,20 @@
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
-  ]
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/" }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["gru1"],
+  "functions": {
+    "app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
