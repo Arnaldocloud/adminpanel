@@ -178,9 +178,9 @@ export default function CardUploadAdmin() {
         <div className="bg-gray-100 p-4 rounded-lg">
           <h4 className="font-medium mb-2">Configuración de Supabase Storage:</h4>
           <div className="text-sm text-gray-600 space-y-1">
-            <p>1. Crea un bucket llamado "bingo-cards" en Supabase Storage</p>
-            <p>2. Configura el bucket como público</p>
-            <p>3. Ajusta las políticas RLS si es necesario</p>
+            <p>1. Crea un bucket llamado &quot;bingo-cards&quot; en Supabase Storage</p>
+            <p>2. Configura el bucket como p&uacute;blico</p>
+            <p>3. Ajusta las pol&iacute;ticas RLS si es necesario</p>
           </div>
         </div>
       </CardContent>

@@ -106,7 +106,7 @@ export default function TwilioSandboxHelper() {
                   Agregar el número <strong>{sandboxNumber}</strong> a WhatsApp
                 </li>
                 <li>
-                  Enviar el mensaje: <strong>"join bingo-admin"</strong>
+                  Enviar el mensaje: <strong>&quot;join bingo-admin&quot;</strong>
                 </li>
                 <li>Esperar confirmación de Twilio</li>
                 <li>¡Ya pueden recibir notificaciones del bingo!</li>
@@ -194,7 +194,7 @@ export default function TwilioSandboxHelper() {
                 <strong>Paso 1:</strong> Agrega este número a tus contactos: <strong>{sandboxNumber}</strong>
               </p>
               <p>
-                <strong>Paso 2:</strong> Envía el mensaje: <strong>"join bingo-admin"</strong>
+                <strong>Paso 2:</strong> Envía el mensaje: <strong>&quot;join bingo-admin&quot;</strong>
               </p>
               <p>
                 <strong>Paso 3:</strong> Espera la confirmación de Twilio

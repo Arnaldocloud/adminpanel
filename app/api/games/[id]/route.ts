@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         cards: p.card_ids
           ? p.card_ids.split(",").map((id: string, index: number) => ({
               id,
-              numbers: JSON.parse(p.card_numbers.split(",")[index]),
+              numbers: JSON.parse(p.card_numbers.split(",")[index]) as number[],
             }))
           : [],
       })),

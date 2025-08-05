@@ -106,7 +106,7 @@ export default function SandboxAwareNotification({
           <AlertDescription className="text-yellow-800 text-sm">
             {message}
             <br />
-            <strong>Solución:</strong> Pide al usuario que envíe "join bingo-admin" al número de Twilio.
+            <strong>Solución:</strong> Pide al usuario que envíe &quot;join bingo-admin&quot; al número de Twilio.
           </AlertDescription>
         </Alert>
       )}
