@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client"
 
 import { useState, useEffect } from "react"
@@ -671,10 +670,3 @@ export default function BingoAdminPanel() {
     </div>
   )
 }
-=======
-import { HomePage } from "@/components/home-page"
-
-export default function Page() {
-  return <HomePage />
-}
->>>>>>> d2d74a7243ae1683ee43b70f57dfe8bcf1e3d73e
