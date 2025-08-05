@@ -39,6 +39,7 @@ const CardGallery: FC<CardGalleryProps> = ({
   const [internalSelectedCards, setInternalSelectedCards] = useState<CardImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isReserving, setIsReserving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -218,6 +219,40 @@ const CardGallery: FC<CardGalleryProps> = ({
     return card.isAvailable || isReservedByCurrentUser(card);
   };
 
+  // Función para manejar la reserva de cartones
+  const handleReserveCards = async () => {
+    if (internalSelectedCards.length === 0) return;
+    
+    try {
+      setIsReserving(true);
+      
+      // Aquí iría la lógica para reservar los cartones
+      // Por ejemplo: await cardInventoryService.reserveCards(internalSelectedCards, userCedula);
+      
+      toast({
+        title: '¡Cartones reservados!',
+        description: `Has reservado ${internalSelectedCards.length} cartón(es) exitosamente.`,
+      });
+      
+      // Actualizar la lista de cartones
+      await fetchCards(1, 20);
+      
+      // Limpiar selección
+      setInternalSelectedCards([]);
+      onCardsSelected([]);
+      
+    } catch (error) {
+      console.error('Error al reservar cartones:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron reservar los cartones. Por favor, inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReserving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -283,13 +318,13 @@ const CardGallery: FC<CardGalleryProps> = ({
       <div className="mb-4">
         <h3 className="text-lg font-medium">Selecciona hasta {maxCards} cartones</h3>
         <p className="text-sm text-gray-500">
-          {selectedCards.length} de {maxCards} cartones seleccionados
+          {internalSelectedCards.length} de {maxCards} cartones seleccionados
         </p>
         <Button 
           variant="default" 
           className="mt-2"
           onClick={handleReserveCards}
-          disabled={selectedCards.length === 0 || isReserving}
+          disabled={internalSelectedCards.length === 0 || isReserving}
         >
           {isReserving ? (
             <>
@@ -297,7 +332,7 @@ const CardGallery: FC<CardGalleryProps> = ({
               Procesando...
             </>
           ) : (
-            `Reservar ${selectedCards.length} cartón${selectedCards.length !== 1 ? 'es' : ''}`
+            `Reservar ${internalSelectedCards.length} cartón${internalSelectedCards.length !== 1 ? 'es' : ''}`
           )}
         </Button>
       </div>
